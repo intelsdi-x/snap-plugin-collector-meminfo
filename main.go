@@ -29,8 +29,7 @@ import (
 	"github.com/intelsdi-x/snap-plugin-collector-meminfo/mem"
 )
 
-
-func main(){
+func main() {
 	memPlugin := mem.New()
 	if memPlugin == nil {
 		panic("Failed to initialize plugin!\n")

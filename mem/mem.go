@@ -1,5 +1,3 @@
-// +build linux
-
 /*
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
@@ -29,27 +27,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vektra/errors"
-
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 )
 
 const (
-	meminfo string = "/proc/meminfo"
-	VENDOR         = "intel"
-	OS             = "linux"
-	PLUGIN         = "meminfo"
-	VERSION        = 1
+	// VENDOR namespace part
+	VENDOR = "intel"
+	// OS namespace part
+	OS = "linux"
+	// PLUGIN name namespace part
+	PLUGIN = "meminfo"
+	// VERSION of mem info plugin
+	VERSION = 1
 )
 
+var memInfo = "/proc/meminfo"
+
 type memPlugin struct {
-	stats map[string]uint64
+	stats map[string]interface{}
 	host  string
 }
 
+// New creates instance of mem info plugin
 func New() *memPlugin {
-	fh, err := os.Open(meminfo)
+	fh, err := os.Open(memInfo)
 
 	if err != nil {
 		return nil
@@ -61,26 +63,27 @@ func New() *memPlugin {
 		host = "localhost"
 	}
 
-	mp := &memPlugin{stats: map[string]uint64{}, host: host}
+	mp := &memPlugin{stats: map[string]interface{}{}, host: host}
 	return mp
 }
 
-func getStats(stats map[string]uint64) error {
-	fh, err := os.Open(meminfo)
+func getStats(stats map[string]interface{}) error {
+	fh, err := os.Open(memInfo)
 
 	if err != nil {
 		return err
 	}
 	defer fh.Close()
 
-	var memUsed uint64 = 0
+	var memSum uint64
+	tmpStats := map[string]uint64{}
 
 	scanner := bufio.NewScanner(fh)
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 
 		if len(fields) < 2 {
-			return errors.New(fmt.Sprintf("Wrong %s format", meminfo))
+			return fmt.Errorf("Wrong %s format", memInfo)
 		}
 
 		name := fields[0]
@@ -103,22 +106,23 @@ func getStats(stats map[string]uint64) error {
 
 		switch name {
 		case "MemFree", "Buffers", "Cached", "Slab":
-			memUsed += value * unit
+			memSum += value * unit
 		}
 
-		stats[name] = value * unit
+		tmpStats[name] = value * unit
 	}
 
-	if stats["MemTotal"] < memUsed {
-		return errors.New(fmt.Sprintf("More value mismatch! More used then available"))
+	if tmpStats["MemTotal"] < memSum {
+		return fmt.Errorf("More value mismatch! More used then available")
 	}
 
-	stats["MemUsed"] = stats["MemTotal"] - memUsed
+	tmpStats["MemUsed"] = tmpStats["MemTotal"] - memSum
 
-	total := stats["MemTotal"]
-	for stat, value := range stats {
+	total := tmpStats["MemUsed"] + memSum
+	for stat, value := range tmpStats {
 		percentage := stat + "_perc"
-		stats[percentage] = 100 * value / total
+		stats[stat] = value
+		stats[percentage] = 100.0 * value / total
 	}
 
 	return nil
@@ -129,7 +133,7 @@ func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginM
 	if err := getStats(mp.stats); err != nil {
 		return nil, err
 	}
-	for stat, _ := range mp.stats {
+	for stat := range mp.stats {
 		metricType := plugin.PluginMetricType{Namespace_: []string{VENDOR, OS, PLUGIN, stat}}
 		metricTypes = append(metricTypes, metricType)
 	}
@@ -142,12 +146,12 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]pl
 	for _, metricType := range metricTypes {
 		ns := metricType.Namespace()
 		if len(ns) < 4 {
-			return nil, errors.New(fmt.Sprintf("Namespace length is too short (len = %d)", len(ns)))
+			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(ns))
 		}
 		stat := ns[3]
 		val, ok := mp.stats[stat]
 		if !ok {
-			return nil, errors.New(fmt.Sprintf("Requested stat %s is not available!", stat))
+			return nil, fmt.Errorf("Requested stat %s is not available!", stat)
 		}
 		metric := plugin.PluginMetricType{
 			Namespace_: ns,
