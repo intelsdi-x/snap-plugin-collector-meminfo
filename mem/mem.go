@@ -128,6 +128,8 @@ func getStats(stats map[string]interface{}) error {
 	return nil
 }
 
+// GetMetricTypes returns list of available metric types
+// It returns error in case retrieval was not successful
 func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
 	metricTypes := []plugin.PluginMetricType{}
 	if err := getStats(mp.stats); err != nil {
@@ -140,6 +142,8 @@ func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginM
 	return metricTypes, nil
 }
 
+// CollectMetrics returns list of requested metric values
+// It returns error in case retrieval was not successful
 func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
 	metrics := []plugin.PluginMetricType{}
 	getStats(mp.stats)
@@ -165,6 +169,8 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]pl
 
 }
 
+// GetConfigPolicy returns config policy
+// It returns error in case retrieval was not successful
 func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	return cpolicy.New(), nil
 }
