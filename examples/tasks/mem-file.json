@@ -7,21 +7,33 @@
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/procfs/meminfo/MemFree": {},
-                "/intel/procfs/meminfo/MemAvailable": {},
-                "/intel/procfs/meminfo/MemTotal": {},
-                "/intel/procfs/meminfo/MemUsed": {}
+                "/intel/linux/meminfo/MemFree": {},
+                "/intel/linux/meminfo/MemAvailable": {},
+                "/intel/linux/meminfo/MemTotal": {},
+                "/intel/linux/meminfo/MemUsed": {}
             },
-            "config": {},
-            "process": null,
-            "publish": [
-                {
-                    "plugin_name": "file",
-                    "config": {
-                        "file": "/tmp/published_meminfo"
-                    }
+            "config": {
+                "/intel/mock": {
+                    "password": "secret",
+                    "user": "root"
                 }
-            ]
+            },
+            "process": [
+                {
+                    "plugin_name": "passthru",
+                    "process": null,
+                    "publish": [
+                        {
+                            "plugin_name": "file",
+                            "config": {
+                                "file": "/tmp/published_meminfo"
+                            }
+                        }
+                    ],
+                    "config": null
+                }
+            ],
+            "publish": null
         }
     }
 }

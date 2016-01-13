@@ -4,7 +4,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2016 Intel Corporation
+Copyright 2015 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,13 +24,26 @@ package main
 import (
 	"os"
 
-	"github.com/intelsdi-x/snap-plugin-collector-meminfo/mem"
 	"github.com/intelsdi-x/snap/control/plugin"
+
+	"github.com/intelsdi-x/snap-plugin-collector-meminfo/mem"
 )
 
 func main() {
+	memPlugin := mem.New()
+	if memPlugin == nil {
+		panic("Failed to initialize plugin!\n")
+	}
+
 	plugin.Start(
-		plugin.NewPluginMeta(mem.PLUGIN, mem.VERSION, plugin.CollectorPluginType, []string{}, []string{plugin.SnapGOBContentType},
-			plugin.ConcurrencyCount(1)), mem.New(), os.Args[1],
+		plugin.NewPluginMeta(
+			mem.PLUGIN,
+			mem.VERSION,
+			plugin.CollectorPluginType,
+			[]string{},
+			[]string{plugin.SnapGOBContentType},
+			plugin.ConcurrencyCount(1)),
+		memPlugin,
+		os.Args[1],
 	)
 }
