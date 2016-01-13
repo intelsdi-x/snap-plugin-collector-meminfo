@@ -2,7 +2,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015 Intel Corporation
+Copyright 2015-2016 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ const (
 	// VENDOR namespace part
 	VENDOR = "intel"
 	// OS namespace part
-	OS = "linux"
+	OS = "procfs"
 	// PLUGIN name namespace part
 	PLUGIN = "meminfo"
 	// VERSION of mem info plugin
@@ -44,13 +44,14 @@ const (
 
 var memInfo = "/proc/meminfo"
 
-type memPlugin struct {
+// MemPlugin holds memory statistics
+type MemPlugin struct {
 	stats map[string]interface{}
 	host  string
 }
 
 // New creates instance of mem info plugin
-func New() *memPlugin {
+func New() *MemPlugin {
 	fh, err := os.Open(memInfo)
 
 	if err != nil {
@@ -63,7 +64,7 @@ func New() *memPlugin {
 		host = "localhost"
 	}
 
-	mp := &memPlugin{stats: map[string]interface{}{}, host: host}
+	mp := &MemPlugin{stats: map[string]interface{}{}, host: host}
 	return mp
 }
 
@@ -79,6 +80,7 @@ func getStats(stats map[string]interface{}) error {
 	tmpStats := map[string]uint64{}
 
 	scanner := bufio.NewScanner(fh)
+
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 
@@ -120,17 +122,17 @@ func getStats(stats map[string]interface{}) error {
 
 	total := tmpStats["MemUsed"] + memSum
 	for stat, value := range tmpStats {
+		stat = formatMetricName(stat)
 		percentage := stat + "_perc"
 		stats[stat] = value
 		stats[percentage] = 100.0 * value / total
 	}
-
 	return nil
 }
 
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
+func (mp *MemPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
 	metricTypes := []plugin.PluginMetricType{}
 	if err := getStats(mp.stats); err != nil {
 		return nil, err
@@ -144,7 +146,7 @@ func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginM
 
 // CollectMetrics returns list of requested metric values
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
+func (mp *MemPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
 	metrics := []plugin.PluginMetricType{}
 	getStats(mp.stats)
 	for _, metricType := range metricTypes {
@@ -166,11 +168,18 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]pl
 		metrics = append(metrics, metric)
 	}
 	return metrics, nil
-
 }
 
 // GetConfigPolicy returns config policy
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
+func (mp *MemPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	return cpolicy.New(), nil
+}
+
+// formatMetricName returns formatted name without space and brackets (changed to underline)
+func formatMetricName(name string) string {
+	name = strings.Replace(strings.Replace(name, "(", " ", -1), ")", " ", -1)
+	name = strings.TrimSpace(name)
+	name = strings.Replace(name, " ", "_", -1)
+	return name
 }
