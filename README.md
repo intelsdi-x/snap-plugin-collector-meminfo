@@ -6,7 +6,7 @@ It's used in the [snap framework](http://github.com:intelsdi-x/snap).
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
   * [Installation](#installation)
-  * [Configuration and Usage](configuration-and-usage)
+  * [Configuration and Usage](#configuration-and-usage)
 2. [Documentation](#documentation)
   * [Collected Metrics](#collected-metrics)
   * [Examples](#examples)
@@ -54,53 +54,53 @@ This plugin has the ability to gather the following metrics:
 
 Namespace | Description (optional)
 ----------|-----------------------
-/intel/linux/meminfo/Active | Memory that has been used more recently and usually not reclaimed unless absolutely necessary
-/intel/linux/meminfo/Active(anon) | 
-/intel/linux/meminfo/Active(file) | 
-/intel/linux/meminfo/AnonHugePages |
-/intel/linux/meminfo/AnonPages |
-/intel/linux/meminfo/Bounce | Memory used for block device "bounce buffers"
-/intel/linux/meminfo/Buffers | Relatively temporary storage for raw disk blocks
-/intel/linux/meminfo/Cached | in-memory cache for files read from the disk
-/intel/linux/meminfo/CmaFree |
-/intel/linux/meminfo/CmaTotal | 
-/intel/linux/meminfo/CommitLimit | total amount of  memory currently available to be allocated on the system based on the overcommit ratio
-/intel/linux/meminfo/Committed_AS | The total amount of memory, estimated to complete the workload 
-/intel/linux/meminfo/DirectMap1G | 
-/intel/linux/meminfo/DirectMap2M | 
-/intel/linux/meminfo/DirectMap4k |
-/intel/linux/meminfo/Dirty | The total amount of memory, waiting to be written back to the disk
-/intel/linux/meminfo/HardwareCorrupted | 
-/intel/linux/meminfo/HugePages_Free | The total number of hugepages available for the system
-/intel/linux/meminfo/HugePages_Rsvd |
-/intel/linux/meminfo/HugePages_Surp |
-/intel/linux/meminfo/HugePages_Total | The total number of hugepages for the system
-/intel/linux/meminfo/Hugepagesize | The size for each hugepages
-/intel/linux/meminfo/Inactive | The total amount of buffer or page cache memory, that are free and available
-/intel/linux/meminfo/Inactive(anon) |
-/intel/linux/meminfo/Inactive(file) |
-/intel/linux/meminfo/KernelStack | 
-/intel/linux/meminfo/Mapped | The total amount of memory, which have been used to map devices, files, or libraries using the mmap command.
-/intel/linux/meminfo/MemAvailable | Estimate of how much memory is available for starting new applications without swapping
-/intel/linux/meminfo/MemFree | The sum of LowFree+HighFree
-/intel/linux/meminfo/MemTotal | Total usable ram
-/intel/linux/meminfo/MemUsed | MemTotal - (MemFree + Buffers + Cached + Slab
-/intel/linux/meminfo/Mlocked | 
-/intel/linux/meminfo/NFS_Unstable | NFS pages sent to the server, but not yet committed to stable storage
-/intel/linux/meminfo/PageTables | amount of memory dedicated to the lowest level of page tables
-/intel/linux/meminfo/SReclaimable | Part of Slab, that might be reclaimed, such as caches
-/intel/linux/meminfo/SUnreclaim | Part of Slab, that cannot be reclaimed on memory pressure
-/intel/linux/meminfo/Shmem | 
-/intel/linux/meminfo/Slab | in-kernel data structures cache
-/intel/linux/meminfo/SwapCached | Memory that once was swapped out, is swapped back in but still also is in the swapfile
-/intel/linux/meminfo/SwapFree | Memory which has been evicted from RAM, and is temporarily on the disk
-/intel/linux/meminfo/SwapTotal | total amount of swap space available
-/intel/linux/meminfo/Unevictable | 
-/intel/linux/meminfo/VmallocChunk | largest contiguous block of vmalloc area which is free
-/intel/linux/meminfo/VmallocTotal | total size of vmalloc memory area
-/intel/linux/meminfo/VmallocUsed | amount of vmalloc area which is used
-/intel/linux/meminfo/Writeback | Memory which is actively being written back to the disk
-/intel/linux/meminfo/WritebackTmp | Memory used by FUSE for temporary writeback buffers
+/intel/procfs/meminfo/Active | The total amount of buffer or page cache memory, in bytes, that is in active use; this memory has been used more recently and usually not reclaimed unless absolutely necessary.
+/intel/procfs/meminfo/Active_anon | 
+/intel/procfs/meminfo/Active_file | 
+/intel/procfs/meminfo/AnonHugePages | The size of non-file backed huge pages mapped into user-space page tables, in bytes
+/intel/procfs/meminfo/AnonPages | The size of non-file backed pages mapped into user-space page tables, in bytes
+/intel/procfs/meminfo/Bounce | The amount of memory used for block device "bounce buffers", in bytes
+/intel/procfs/meminfo/Buffers | The amount of physical RAM, in bytes, used for file buffers
+/intel/procfs/meminfo/Cached | The amount of physical RAM, in bytes, used as cache memory
+/intel/procfs/meminfo/CmaFree | The size of Contiguous Memory Allocator pages, in bytes, which are not used
+/intel/procfs/meminfo/CmaTotal | The total size of Contiguous Memory Allocator pages, in bytes
+/intel/procfs/meminfo/CommitLimit | The  amount of  memory, in bytes, currently available to be allocated on the system based on the overcommit ratio
+/intel/procfs/meminfo/Committed_AS | The amount of memory, in bytes, estimated to complete the workload; this value represents the worst case scenario value, and also includes swap memory
+/intel/procfs/meminfo/DirectMap1G | 
+/intel/procfs/meminfo/DirectMap2M | 
+/intel/procfs/meminfo/DirectMap4k |
+/intel/procfs/meminfo/Dirty | The total amount of memory, in bytes, waiting to be written back to the disk.
+/intel/procfs/meminfo/HardwareCorrupted | 
+/intel/procfs/meminfo/HugePages_Free | The total number of hugepages available for the system
+/intel/procfs/meminfo/HugePages_Rsvd | The number of huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made.
+/intel/procfs/meminfo/HugePages_Surp |The number of huge pages in the pool above the value in /proc/sys/vm/nr_hugepages
+/intel/procfs/meminfo/HugePages_Total | The total number of hugepages for the system
+/intel/procfs/meminfo/Hugepagesize | The size for each hugepages unit, in bytes
+/intel/procfs/meminfo/Inactive | The total amount of buffer or page cache memory, in bytes, that are free and available; this memory has not been recently used and can be reclaimed for other purposes
+/intel/procfs/meminfo/Inactive_anon |  
+/intel/procfs/meminfo/Inactive_file | 
+/intel/procfs/meminfo/KernelStack | The amount of memory allocated to kernel stacks in bytes
+/intel/procfs/meminfo/Mapped | The total amount of memory, in bytes, which have been used to map devices, files, or libraries using the mmap command
+/intel/procfs/meminfo/MemAvailable | The estimated amount of memory, in bytes, which is available for starting new applications without swapping
+/intel/procfs/meminfo/MemFree | The amount of physical RAM, in bytes, left unused by the system (the sum of LowFree+HighFree)
+/intel/procfs/meminfo/MemTotal | Total amount of physical RAM, in bytes
+/intel/procfs/meminfo/MemUsed | The amount of physical Ram, in bytes which is used; it equals: MemTotal-(MemFree+Buffers+Cached+Slab)
+/intel/procfs/meminfo/Mlocked | The total amount of memory, in bytes, which is locked from userspace.
+/intel/procfs/meminfo/NFS_Unstable | The size of NFS pages, in bytes, which are sent to the server, but not yet committed to stable storage
+/intel/procfs/meminfo/PageTables | The total amount of memory, in bytes, dedicated to the lowest page table level.
+/intel/procfs/meminfo/SReclaimable | The part of Slab, in bytes, that might be reclaimed, such as caches
+/intel/procfs/meminfo/SUnreclaim | The part of Slab, in bytes, that cannot be reclaimed on memory pressure
+/intel/procfs/meminfo/Shmem | The total amount of memory, in bytes, which is shared
+/intel/procfs/meminfo/Slab | The total amount of memory, in bytes, used by the kernel to cache data structures for its own use.
+/intel/procfs/meminfo/SwapCached | The amount of swap, in bytes, used as cache memory
+/intel/procfs/meminfo/SwapFree | The total amount of swap free, in bytes 
+/intel/procfs/meminfo/SwapTotal | The total amount of swap available, in bytes
+/intel/procfs/meminfo/Unevictable | 
+/intel/procfs/meminfo/VmallocChunk | The largest contiguous block of vmalloc area, in bytes, which is free
+/intel/procfs/meminfo/VmallocTotal | The total size of vmalloc memory area in bytes
+/intel/procfs/meminfo/VmallocUsed | The amount of vmalloc area, in bytes, which is used
+/intel/procfs/meminfo/Writeback | The total amount of memory, in bytes, actively being written back to the disk
+/intel/procfs/meminfo/WritebackTmp | The amount of memory, in bytes, used by FUSE for temporary writeback buffers
 
 All above metrics are additionally presented as percentage of total available memory. Those metrics has added suffix "_perc".
 
@@ -135,49 +135,25 @@ Create a task manifest file (e.g. `mem-file.json`):
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/linux/meminfo/MemFree": {},
-                "/intel/linux/meminfo/MemAvailable": {}, 
-                "/intel/linux/meminfo/MemTotal": {},
-                "/intel/linux/meminfo/MemUsed": {} 
+                "/intel/procfs/meminfo/MemFree": {},
+                "/intel/procfs/meminfo/MemAvailable": {},
+                "/intel/procfs/meminfo/MemTotal": {},
+                "/intel/procfs/meminfo/MemUsed": {}
             },
-            "config": {
-                "/intel/mock": {
-                    "password": "secret",
-                    "user": "root"
-                }
-            },
-            "process": [
+            "config": {},
+            "process": null,
+            "publish": [
                 {
-                    "plugin_name": "passthru",
-                    "process": null,
-                    "publish": [
-                        {                         
-                            "plugin_name": "file",
-                            "config": {
-                                "file": "/tmp/published_meminfo"
-                            }
-                        }
-                    ],
-                    "config": null
+                    "plugin_name": "file",
+                    "config": {
+                        "file": "/tmp/published_meminfo"
+                    }
                 }
-            ],
-            "publish": null
+            ]
         }
     }
 }
 ```
-
-Load passthru plugin for processing:
-```
-$ $SNAP_PATH/bin/snapctl plugin load build/plugin/snap-processor-passthru
-Plugin loaded
-Name: passthru
-Version: 1
-Type: processor
-Signed: false
-Loaded Time: Fri, 20 Nov 2015 11:44:03 PST
-```
-
 Load file plugin for publishing:
 ```
 $ $SNAP_PATH/bin/snapctl plugin load build/plugin/snap-publisher-file
