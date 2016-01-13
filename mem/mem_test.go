@@ -4,7 +4,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015-2016 Intel Corporation
+Copyright 2015 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -143,18 +143,18 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 					namespaces = append(namespaces, strings.Join(m.Namespace(), "/"))
 				}
 
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Cached")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Cached_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemTotal")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemTotal_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemFree")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemFree_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemUsed")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemUsed_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Buffers_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Buffers")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Slab_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Slab")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Cached")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Cached_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemTotal")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemTotal_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemFree")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemFree_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemUsed")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/MemUsed_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Buffers_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Buffers")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Slab_perc")
+				So(namespaces, ShouldContain, "intel/linux/meminfo/Slab")
 			})
 		})
 	})
@@ -166,10 +166,10 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 		Convey("When one wants to get values for given metric types", func() {
 			mTypes := []plugin.PluginMetricType{
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "Cached"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "Cached_perc"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "MemTotal"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "MemUsed"}},
+				plugin.PluginMetricType{Namespace_: []string{"intel", "linux", "meminfo", "Cached"}},
+				plugin.PluginMetricType{Namespace_: []string{"intel", "linux", "meminfo", "Cached_perc"}},
+				plugin.PluginMetricType{Namespace_: []string{"intel", "linux", "meminfo", "MemTotal"}},
+				plugin.PluginMetricType{Namespace_: []string{"intel", "linux", "meminfo", "MemUsed"}},
 			}
 
 			metrics, err := memPlugin.CollectMetrics(mTypes)
@@ -192,10 +192,10 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 				assert.Equal(mps.T(), len(metrics), len(stats))
 
-				So(stats["intel/procfs/meminfo/Cached"], ShouldEqual, mps.cache*1024)
-				So(stats["intel/procfs/meminfo/Cached_perc"], ShouldEqual, 100.0*mps.cache/mps.tot)
-				So(stats["intel/procfs/meminfo/MemTotal"], ShouldEqual, mps.tot*1024)
-				So(stats["intel/procfs/meminfo/MemUsed"], ShouldEqual, mps.used*1024)
+				So(stats["intel/linux/meminfo/Cached"], ShouldEqual, mps.cache*1024)
+				So(stats["intel/linux/meminfo/Cached_perc"], ShouldEqual, 100.0*mps.cache/mps.tot)
+				So(stats["intel/linux/meminfo/MemTotal"], ShouldEqual, mps.tot*1024)
+				So(stats["intel/linux/meminfo/MemUsed"], ShouldEqual, mps.used*1024)
 			})
 
 		})
