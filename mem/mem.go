@@ -2,7 +2,7 @@
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
 
-Copyright 2015 Intel Corporation
+Copyright 2015-2016 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import (
 const (
 	// VENDOR namespace part
 	VENDOR = "intel"
-	// OS namespace part
-	OS = "linux"
+	// CLASS namespace part
+	CLASS = "procfs"
 	// PLUGIN name namespace part
 	PLUGIN = "meminfo"
 	// VERSION of mem info plugin
@@ -44,6 +44,8 @@ const (
 
 var memInfo = "/proc/meminfo"
 
+// memPlugin holds memory statistics,
+// unexported because New() method needs to be used for proper initalization
 type memPlugin struct {
 	stats map[string]interface{}
 	host  string
@@ -79,6 +81,7 @@ func getStats(stats map[string]interface{}) error {
 	tmpStats := map[string]uint64{}
 
 	scanner := bufio.NewScanner(fh)
+
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 
@@ -120,11 +123,11 @@ func getStats(stats map[string]interface{}) error {
 
 	total := tmpStats["MemUsed"] + memSum
 	for stat, value := range tmpStats {
+		stat = formatMetricName(stat)
 		percentage := stat + "_perc"
 		stats[stat] = value
 		stats[percentage] = 100.0 * value / total
 	}
-
 	return nil
 }
 
@@ -136,7 +139,7 @@ func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginM
 		return nil, err
 	}
 	for stat := range mp.stats {
-		metricType := plugin.PluginMetricType{Namespace_: []string{VENDOR, OS, PLUGIN, stat}}
+		metricType := plugin.PluginMetricType{Namespace_: []string{VENDOR, CLASS, PLUGIN, stat}}
 		metricTypes = append(metricTypes, metricType)
 	}
 	return metricTypes, nil
@@ -166,11 +169,18 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]pl
 		metrics = append(metrics, metric)
 	}
 	return metrics, nil
-
 }
 
 // GetConfigPolicy returns config policy
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	return cpolicy.New(), nil
+}
+
+// formatMetricName returns formatted name without space and brackets (changed to underline)
+func formatMetricName(name string) string {
+	name = strings.Replace(strings.Replace(name, "(", " ", -1), ")", " ", -1)
+	name = strings.TrimSpace(name)
+	name = strings.Replace(name, " ", "_", -1)
+	return name
 }
