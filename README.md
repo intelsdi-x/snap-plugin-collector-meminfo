@@ -18,7 +18,7 @@ It's used in the [snap framework](http://github.com:intelsdi-x/snap).
 
 ## Getting Started
 ### System Requirements
-* [golang 1.4+](https://golang.org/dl/)
+* [golang 1.5+](https://golang.org/dl/)
 
 ### Operating systems
 All OSs currently supported by snap:
@@ -29,7 +29,8 @@ All OSs currently supported by snap:
 You can get the pre-built binaries for your OS and architecture at snap's [GitHub Releases](https://github.com/intelsdi-x/snap/releases) page.
 
 #### To build the plugin binary:
-Fork https://github.com/intelsdi-x/snap-plugin-collector-meminfo  
+Fork https://github.com/intelsdi-x/snap-plugin-collector-meminfo
+
 Clone repo into `$GOPATH/src/github.com/intelsdi-x/`:
 
 ```
@@ -46,66 +47,21 @@ This builds the plugin in `/build/rootfs/`
 * Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
 * Ensure `$SNAP_PATH` is exported  
 `export SNAP_PATH=$GOPATH/src/github.com/intelsdi-x/snap/build`
+* Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-meminfo/blob/master/README.md#examples).
 
 ## Documentation
 
 ### Collected Metrics
-This plugin has the ability to gather the following metrics:
-
-Namespace | Description (optional)
-----------|-----------------------
-/intel/procfs/meminfo/Active | The total amount of buffer or page cache memory, in bytes, that is in active use; this memory has been used more recently and usually not reclaimed unless absolutely necessary.
-/intel/procfs/meminfo/Active_anon | 
-/intel/procfs/meminfo/Active_file | 
-/intel/procfs/meminfo/AnonHugePages | The size of non-file backed huge pages mapped into user-space page tables, in bytes
-/intel/procfs/meminfo/AnonPages | The size of non-file backed pages mapped into user-space page tables, in bytes
-/intel/procfs/meminfo/Bounce | The amount of memory used for block device "bounce buffers", in bytes
-/intel/procfs/meminfo/Buffers | The amount of physical RAM, in bytes, used for file buffers
-/intel/procfs/meminfo/Cached | The amount of physical RAM, in bytes, used as cache memory
-/intel/procfs/meminfo/CmaFree | The size of Contiguous Memory Allocator pages, in bytes, which are not used
-/intel/procfs/meminfo/CmaTotal | The total size of Contiguous Memory Allocator pages, in bytes
-/intel/procfs/meminfo/CommitLimit | The  amount of  memory, in bytes, currently available to be allocated on the system based on the overcommit ratio
-/intel/procfs/meminfo/Committed_AS | The amount of memory, in bytes, estimated to complete the workload; this value represents the worst case scenario value, and also includes swap memory
-/intel/procfs/meminfo/DirectMap1G | 
-/intel/procfs/meminfo/DirectMap2M | 
-/intel/procfs/meminfo/DirectMap4k |
-/intel/procfs/meminfo/Dirty | The total amount of memory, in bytes, waiting to be written back to the disk.
-/intel/procfs/meminfo/HardwareCorrupted | 
-/intel/procfs/meminfo/HugePages_Free | The total number of hugepages available for the system
-/intel/procfs/meminfo/HugePages_Rsvd | The number of huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made.
-/intel/procfs/meminfo/HugePages_Surp |The number of huge pages in the pool above the value in /proc/sys/vm/nr_hugepages
-/intel/procfs/meminfo/HugePages_Total | The total number of hugepages for the system
-/intel/procfs/meminfo/Hugepagesize | The size for each hugepages unit, in bytes
-/intel/procfs/meminfo/Inactive | The total amount of buffer or page cache memory, in bytes, that are free and available; this memory has not been recently used and can be reclaimed for other purposes
-/intel/procfs/meminfo/Inactive_anon |  
-/intel/procfs/meminfo/Inactive_file | 
-/intel/procfs/meminfo/KernelStack | The amount of memory allocated to kernel stacks in bytes
-/intel/procfs/meminfo/Mapped | The total amount of memory, in bytes, which have been used to map devices, files, or libraries using the mmap command
-/intel/procfs/meminfo/MemAvailable | The estimated amount of memory, in bytes, which is available for starting new applications without swapping
-/intel/procfs/meminfo/MemFree | The amount of physical RAM, in bytes, left unused by the system (the sum of LowFree+HighFree)
-/intel/procfs/meminfo/MemTotal | Total amount of physical RAM, in bytes
-/intel/procfs/meminfo/MemUsed | The amount of physical Ram, in bytes which is used; it equals: MemTotal-(MemFree+Buffers+Cached+Slab)
-/intel/procfs/meminfo/Mlocked | The total amount of memory, in bytes, which is locked from userspace.
-/intel/procfs/meminfo/NFS_Unstable | The size of NFS pages, in bytes, which are sent to the server, but not yet committed to stable storage
-/intel/procfs/meminfo/PageTables | The total amount of memory, in bytes, dedicated to the lowest page table level.
-/intel/procfs/meminfo/SReclaimable | The part of Slab, in bytes, that might be reclaimed, such as caches
-/intel/procfs/meminfo/SUnreclaim | The part of Slab, in bytes, that cannot be reclaimed on memory pressure
-/intel/procfs/meminfo/Shmem | The total amount of memory, in bytes, which is shared
-/intel/procfs/meminfo/Slab | The total amount of memory, in bytes, used by the kernel to cache data structures for its own use.
-/intel/procfs/meminfo/SwapCached | The amount of swap, in bytes, used as cache memory
-/intel/procfs/meminfo/SwapFree | The total amount of swap free, in bytes 
-/intel/procfs/meminfo/SwapTotal | The total amount of swap available, in bytes
-/intel/procfs/meminfo/Unevictable | 
-/intel/procfs/meminfo/VmallocChunk | The largest contiguous block of vmalloc area, in bytes, which is free
-/intel/procfs/meminfo/VmallocTotal | The total size of vmalloc memory area in bytes
-/intel/procfs/meminfo/VmallocUsed | The amount of vmalloc area, in bytes, which is used
-/intel/procfs/meminfo/Writeback | The total amount of memory, in bytes, actively being written back to the disk
-/intel/procfs/meminfo/WritebackTmp | The amount of memory, in bytes, used by FUSE for temporary writeback buffers
-
-All above metrics are additionally presented as percentage of total available memory. Those metrics has added suffix "_perc".
+List of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-processes/blob/master/METRICS.md).
 
 ### Examples
 Example running meminfo, passthru processor, and writing data to a file.
+
+Make sure that your `$SNAP_PATH` is set, if not:
+```
+$ export SNAP_PATH=<snapDirectoryPath>/build
+```
+Other paths to files should be set according to your configuration, using a file you should indicate where it is located.
 
 This is done from the snap directory.
 
@@ -115,7 +71,7 @@ $ $SNAP_PATH/bin/snapd -l 1 -t 0
 ```
 
 In another terminal window:
-Load meminfo plugin
+Load meminfo plugin:
 ```
 $ $SNAP_PATH/bin/snapctl plugin load snap-plugin-collector-meminfo
 ```
@@ -124,7 +80,7 @@ See available metrics for your system
 $ $SNAP_PATH/bin/snapctl metric list
 ```
 
-Create a task manifest file (e.g. `mem-file.json`):    
+Create a task manifest file  (exemplary files in [examples/tasks/] (https://github.com/intelsdi-x/snap-plugin-collector-meminfo/blob/master/examples/tasks/)):
 ```json
 {
     "version": 1,
@@ -186,17 +142,17 @@ ID: 02dd7ff4-8106-47e9-8b86-70067cd0a850
 There isn't a current roadmap for this plugin, but it is in active development. As we launch this plugin, we do not have any outstanding requirements for the next release. If you have a feature request, please add it as an [issue](https://github.com/intelsdi-x/snap-plugin-collector-meminfo/issues/new) and/or submit a [pull request](https://github.com/intelsdi-x/snap-plugin-collector-meminfo/pulls).
 
 ## Community Support
-This repository is one of **many** plugins in **snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap To reach out to other users, head to the [main framework](https://github.com/intelsdi-x/snap#community-support)
+This repository is one of **many** plugins in **snap**, a powerful telemetry framework. See the full project at http://github.com/intelsdi-x/snap To reach out to other users, head to the [main framework](https://github.com/intelsdi-x/snap#community-support) or visit [snap Gitter channel](https://gitter.im/intelsdi-x/snap).
 
 ## Contributing
 We love contributions!
 
 There's more than one way to give back, from examples to blogs to code updates. See our recommended process in [CONTRIBUTING.md](CONTRIBUTING.md).
 
+And **thank you!** Your contribution, through code and participation, is incredibly important to us.
+
 ## License
 [snap](http://github.com:intelsdi-x/snap), along with this plugin, is an Open Source software released under the Apache 2.0 [License](LICENSE).
 
 ## Acknowledgements
-* Author: [@MarcinKrolik](https://github.com/marcin-krolik/)
-
-And **thank you!** Your contribution, through code and participation, is incredibly important to us.
+* Author: [Marcin Krolik](https://github.com/marcin-krolik/)
