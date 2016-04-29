@@ -29,6 +29,7 @@ import (
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core"
 )
 
 const (
@@ -43,13 +44,6 @@ const (
 )
 
 var memInfo = "/proc/meminfo"
-
-// memPlugin holds memory statistics,
-// unexported because New() method needs to be used for proper initalization
-type memPlugin struct {
-	stats map[string]interface{}
-	host  string
-}
 
 // New creates instance of mem info plugin
 func New() *memPlugin {
@@ -67,6 +61,65 @@ func New() *memPlugin {
 
 	mp := &memPlugin{stats: map[string]interface{}{}, host: host}
 	return mp
+}
+
+// GetMetricTypes returns list of available metric types
+// It returns error in case retrieval was not successful
+func (mp *memPlugin) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, error) {
+	metricTypes := []plugin.MetricType{}
+	if err := getStats(mp.stats); err != nil {
+		return nil, err
+	}
+	for stat := range mp.stats {
+		metricType := plugin.MetricType{Namespace_: core.NewNamespace(VENDOR, CLASS, PLUGIN, stat)}
+		metricTypes = append(metricTypes, metricType)
+	}
+	return metricTypes, nil
+}
+
+// CollectMetrics returns list of requested metric values
+// It returns error in case retrieval was not successful
+func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
+	metrics := []plugin.MetricType{}
+	getStats(mp.stats)
+	for _, metricType := range metricTypes {
+		tags := metricType.Tags()
+		if tags == nil {
+			tags = map[string]string{}
+		}
+		tags["hostname"] = mp.host
+
+		ns := metricType.Namespace().Strings()
+		if len(ns) < 4 {
+			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(ns))
+		}
+		stat := ns[3]
+		val, ok := mp.stats[stat]
+		if !ok {
+			return nil, fmt.Errorf("Requested stat %s is not available!", stat)
+		}
+		metric := plugin.MetricType{
+			Namespace_: metricType.Namespace(),
+			Data_:      val,
+			Tags_:      tags,
+			Timestamp_: time.Now(),
+		}
+		metrics = append(metrics, metric)
+	}
+	return metrics, nil
+}
+
+// GetConfigPolicy returns config policy
+// It returns error in case retrieval was not successful
+func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
+	return cpolicy.New(), nil
+}
+
+// memPlugin holds memory statistics,
+// unexported because New() method needs to be used for proper initalization
+type memPlugin struct {
+	stats map[string]interface{}
+	host  string
 }
 
 func getStats(stats map[string]interface{}) error {
@@ -129,52 +182,6 @@ func getStats(stats map[string]interface{}) error {
 		stats[percentage] = 100.0 * value / total
 	}
 	return nil
-}
-
-// GetMetricTypes returns list of available metric types
-// It returns error in case retrieval was not successful
-func (mp *memPlugin) GetMetricTypes(_ plugin.PluginConfigType) ([]plugin.PluginMetricType, error) {
-	metricTypes := []plugin.PluginMetricType{}
-	if err := getStats(mp.stats); err != nil {
-		return nil, err
-	}
-	for stat := range mp.stats {
-		metricType := plugin.PluginMetricType{Namespace_: []string{VENDOR, CLASS, PLUGIN, stat}}
-		metricTypes = append(metricTypes, metricType)
-	}
-	return metricTypes, nil
-}
-
-// CollectMetrics returns list of requested metric values
-// It returns error in case retrieval was not successful
-func (mp *memPlugin) CollectMetrics(metricTypes []plugin.PluginMetricType) ([]plugin.PluginMetricType, error) {
-	metrics := []plugin.PluginMetricType{}
-	getStats(mp.stats)
-	for _, metricType := range metricTypes {
-		ns := metricType.Namespace()
-		if len(ns) < 4 {
-			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(ns))
-		}
-		stat := ns[3]
-		val, ok := mp.stats[stat]
-		if !ok {
-			return nil, fmt.Errorf("Requested stat %s is not available!", stat)
-		}
-		metric := plugin.PluginMetricType{
-			Namespace_: ns,
-			Data_:      val,
-			Source_:    mp.host,
-			Timestamp_: time.Now(),
-		}
-		metrics = append(metrics, metric)
-	}
-	return metrics, nil
-}
-
-// GetConfigPolicy returns config policy
-// It returns error in case retrieval was not successful
-func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	return cpolicy.New(), nil
 }
 
 // formatMetricName returns formatted name without space and brackets (changed to underline)
