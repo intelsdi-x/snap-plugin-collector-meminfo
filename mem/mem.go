@@ -40,7 +40,7 @@ const (
 	// PLUGIN name namespace part
 	PLUGIN = "meminfo"
 	// VERSION of mem info plugin
-	VERSION = 1
+	VERSION = 2
 )
 
 var memInfo = "/proc/meminfo"
