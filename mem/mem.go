@@ -54,12 +54,7 @@ func New() *memPlugin {
 	}
 	defer fh.Close()
 
-	host, err := os.Hostname()
-	if err != nil {
-		host = "localhost"
-	}
-
-	mp := &memPlugin{stats: map[string]interface{}{}, host: host}
+	mp := &memPlugin{stats: map[string]interface{}{}}
 	return mp
 }
 
@@ -83,12 +78,6 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 	metrics := []plugin.MetricType{}
 	getStats(mp.stats)
 	for _, metricType := range metricTypes {
-		tags := metricType.Tags()
-		if tags == nil {
-			tags = map[string]string{}
-		}
-		tags["hostname"] = mp.host
-
 		ns := metricType.Namespace().Strings()
 		if len(ns) < 4 {
 			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(ns))
@@ -101,7 +90,6 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 		metric := plugin.MetricType{
 			Namespace_: metricType.Namespace(),
 			Data_:      val,
-			Tags_:      tags,
 			Timestamp_: time.Now(),
 		}
 		metrics = append(metrics, metric)
@@ -119,7 +107,6 @@ func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 // unexported because New() method needs to be used for proper initalization
 type memPlugin struct {
 	stats map[string]interface{}
-	host  string
 }
 
 func getStats(stats map[string]interface{}) error {
