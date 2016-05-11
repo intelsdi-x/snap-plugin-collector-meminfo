@@ -1,5 +1,3 @@
-// +build unit
-
 /*
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
@@ -24,10 +22,11 @@ package mem
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/core"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -129,7 +128,7 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 		memPlugin := New()
 
 		Convey("When one wants to get list of available meterics", func() {
-			mts, err := memPlugin.GetMetricTypes(plugin.PluginConfigType{})
+			mts, err := memPlugin.GetMetricTypes(plugin.ConfigType{})
 
 			Convey("Then error should not be reported", func() {
 				So(err, ShouldBeNil)
@@ -140,21 +139,21 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 
 				namespaces := []string{}
 				for _, m := range mts {
-					namespaces = append(namespaces, strings.Join(m.Namespace(), "/"))
+					namespaces = append(namespaces, m.Namespace().String())
 				}
 
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Cached")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Cached_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemTotal")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemTotal_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemFree")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemFree_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemUsed")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/MemUsed_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Buffers_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Buffers")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Slab_perc")
-				So(namespaces, ShouldContain, "intel/procfs/meminfo/Slab")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Cached")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Cached_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemTotal")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemTotal_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemFree")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemFree_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemUsed")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemUsed_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Buffers_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Buffers")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Slab_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Slab")
 			})
 		})
 	})
@@ -165,11 +164,11 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 		memPlugin := New()
 
 		Convey("When one wants to get values for given metric types", func() {
-			mTypes := []plugin.PluginMetricType{
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "Cached"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "Cached_perc"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "MemTotal"}},
-				plugin.PluginMetricType{Namespace_: []string{"intel", "procfs", "meminfo", "MemUsed"}},
+			mTypes := []plugin.MetricType{
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "Cached")},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "Cached_perc")},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "MemTotal")},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "MemUsed")},
 			}
 
 			metrics, err := memPlugin.CollectMetrics(mTypes)
@@ -183,7 +182,7 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 				stats := map[string]uint64{}
 				for _, m := range metrics {
-					n := strings.Join(m.Namespace(), "/")
+					n := m.Namespace().String()
 					v, ok := m.Data().(uint64)
 					if ok {
 						stats[n] = v
@@ -192,10 +191,10 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 				assert.Equal(mps.T(), len(metrics), len(stats))
 
-				So(stats["intel/procfs/meminfo/Cached"], ShouldEqual, mps.cache*1024)
-				So(stats["intel/procfs/meminfo/Cached_perc"], ShouldEqual, 100.0*mps.cache/mps.tot)
-				So(stats["intel/procfs/meminfo/MemTotal"], ShouldEqual, mps.tot*1024)
-				So(stats["intel/procfs/meminfo/MemUsed"], ShouldEqual, mps.used*1024)
+				So(stats["/intel/procfs/meminfo/Cached"], ShouldEqual, mps.cache*1024)
+				So(stats["/intel/procfs/meminfo/Cached_perc"], ShouldEqual, 100.0*mps.cache/mps.tot)
+				So(stats["/intel/procfs/meminfo/MemTotal"], ShouldEqual, mps.tot*1024)
+				So(stats["/intel/procfs/meminfo/MemUsed"], ShouldEqual, mps.used*1024)
 			})
 
 		})
