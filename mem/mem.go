@@ -47,13 +47,6 @@ var memInfo = "/proc/meminfo"
 
 // New creates instance of mem info plugin
 func New() *memPlugin {
-	fh, err := os.Open(memInfo)
-
-	if err != nil {
-		return nil
-	}
-	defer fh.Close()
-
 	mp := &memPlugin{stats: map[string]interface{}{}}
 	return mp
 }
