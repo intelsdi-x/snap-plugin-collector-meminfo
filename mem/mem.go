@@ -26,41 +26,61 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 	"github.com/intelsdi-x/snap/core"
+
+	"github.com/intelsdi-x/snap-plugin-utilities/config"
+	"github.com/intelsdi-x/snap-plugin-utilities/ns"
 )
 
 const (
 	// VENDOR namespace part
-	VENDOR = "intel"
+	pluginVendor = "intel"
 	// CLASS namespace part
-	CLASS = "procfs"
+	fs = "procfs"
 	// PLUGIN name namespace part
-	PLUGIN = "meminfo"
+	pluginName = "meminfo"
 	// VERSION of mem info plugin
-	VERSION = 2
+	pluginVersion = 3
 )
-
-var memInfo = "/proc/meminfo"
 
 // New creates instance of mem info plugin
 func New() *memPlugin {
-	mp := &memPlugin{stats: map[string]interface{}{}}
-	return mp
+	logger := log.New()
+	return &memPlugin{logger: logger}
+}
+
+// Meta returns plugin meta data
+func Meta() *plugin.PluginMeta {
+	return plugin.NewPluginMeta(
+		pluginName,
+		pluginVersion,
+		plugin.CollectorPluginType,
+		[]string{},
+		[]string{plugin.SnapGOBContentType},
+		plugin.ConcurrencyCount(1),
+	)
 }
 
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, error) {
+func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
 	metricTypes := []plugin.MetricType{}
-	if err := getStats(mp.stats); err != nil {
-		return nil, err
-	}
-	for stat := range mp.stats {
-		metricType := plugin.MetricType{Namespace_: core.NewNamespace(VENDOR, CLASS, PLUGIN, stat)}
-		metricTypes = append(metricTypes, metricType)
+	metrics := &MemMetrics{}
+	namespaces := []string{}
+	ns.FromCompositionTags(metrics, strings.Join([]string{pluginVendor, fs, pluginName}, "/"), &namespaces)
+	for _, namespace := range namespaces {
+		metric := plugin.MetricType{
+			Namespace_: core.NewNamespace(strings.Split(namespace, "/")...),
+			Config_:    cfg.ConfigDataNode,
+		}
+		metricTypes = append(metricTypes, metric)
 	}
 	return metricTypes, nil
 }
@@ -69,17 +89,23 @@ func (mp *memPlugin) GetMetricTypes(_ plugin.ConfigType) ([]plugin.MetricType, e
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
 	metrics := []plugin.MetricType{}
-	getStats(mp.stats)
+
+	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "procfs_path")
+	if err != nil {
+		return nil, err
+	}
+
+	stats := &MemMetrics{}
+	getStats(pathMemInfo.(string), stats)
+
 	for _, metricType := range metricTypes {
-		ns := metricType.Namespace().Strings()
-		if len(ns) < 4 {
-			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(ns))
+		namespace := metricType.Namespace()
+		if len(namespace.Strings()) < 4 {
+			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(namespace.Strings()))
 		}
-		stat := ns[3]
-		val, ok := mp.stats[stat]
-		if !ok {
-			return nil, fmt.Errorf("Requested stat %s is not available!", stat)
-		}
+
+		val := ns.GetValueByNamespace(stats, namespace.Strings()[3:])
+
 		metric := plugin.MetricType{
 			Namespace_: metricType.Namespace(),
 			Data_:      val,
@@ -93,17 +119,20 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 // GetConfigPolicy returns config policy
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	return cpolicy.New(), nil
+	cp := cpolicy.New()
+	rule, _ := cpolicy.NewStringRule("procfs_path", false, "/proc/meminfo")
+	node := cpolicy.NewPolicyNode()
+	node.Add(rule)
+	cp.Add([]string{pluginVendor, fs, pluginName}, node)
+	return cp, nil
 }
 
-// memPlugin holds memory statistics,
-// unexported because New() method needs to be used for proper initalization
 type memPlugin struct {
-	stats map[string]interface{}
+	logger *log.Logger
 }
 
-func getStats(stats map[string]interface{}) error {
-	fh, err := os.Open(memInfo)
+func getStats(pathMemInfo string, metrics *MemMetrics) error {
+	fh, err := os.Open(pathMemInfo)
 
 	if err != nil {
 		return err
@@ -111,7 +140,7 @@ func getStats(stats map[string]interface{}) error {
 	defer fh.Close()
 
 	var memSum uint64
-	tmpStats := map[string]uint64{}
+	tmpStats := map[string]interface{}{}
 
 	scanner := bufio.NewScanner(fh)
 
@@ -119,7 +148,7 @@ func getStats(stats map[string]interface{}) error {
 		fields := strings.Fields(scanner.Text())
 
 		if len(fields) < 2 {
-			return fmt.Errorf("Wrong %s format", memInfo)
+			return fmt.Errorf("Wrong %v format", fields)
 		}
 
 		name := fields[0]
@@ -139,35 +168,59 @@ func getStats(stats map[string]interface{}) error {
 		if err != nil {
 			return err
 		}
-
 		switch name {
 		case "MemFree", "Buffers", "Cached", "Slab":
 			memSum += value * unit
 		}
 
-		tmpStats[name] = value * unit
+		tmpStats[formatName(name)] = value * unit
 	}
 
-	if tmpStats["MemTotal"] < memSum {
+	if tmpStats["mem_total"].(uint64) < memSum {
 		return fmt.Errorf("More value mismatch! More used then available")
 	}
 
-	tmpStats["MemUsed"] = tmpStats["MemTotal"] - memSum
-
-	total := tmpStats["MemUsed"] + memSum
+	tmpStats["mem_used"] = tmpStats["mem_total"].(uint64) - memSum
+	total := tmpStats["mem_used"].(uint64) + memSum
+	stats := map[string]interface{}{}
 	for stat, value := range tmpStats {
-		stat = formatMetricName(stat)
-		percentage := stat + "_perc"
 		stats[stat] = value
-		stats[percentage] = 100.0 * value / total
+		percentage := stat + "_perc"
+		stats[percentage] = 100.0 * float64(value.(uint64)) / float64(total)
 	}
+
+	err = mapstructure.Decode(stats, metrics)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// formatMetricName returns formatted name without space and brackets (changed to underline)
-func formatMetricName(name string) string {
-	name = strings.Replace(strings.Replace(name, "(", " ", -1), ")", " ", -1)
-	name = strings.TrimSpace(name)
-	name = strings.Replace(name, " ", "_", -1)
-	return name
+func formatName(name string) string {
+	uppers := []int{}
+	name = strings.Replace(name, "(", "_", -1)
+	name = strings.Replace(name, ")", "", -1)
+
+	for i, c := range name {
+		if unicode.IsUpper(c) {
+			uppers = append(uppers, i)
+		}
+	}
+
+	name = strings.ToLower(name)
+	formatted := ""
+	for i, _ := range uppers {
+		if uppers[i] != 0 {
+			bottom := uppers[i-1]
+			up := uppers[i]
+			prev := string(name[up-1])
+			formatted += name[bottom:up]
+			if up-bottom > 1 && !strings.Contains("1234567890_", prev) {
+				formatted += "_"
+			}
+		}
+	}
+
+	return formatted + name[uppers[len(uppers)-1]:]
 }

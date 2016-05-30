@@ -27,6 +27,7 @@ import (
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/core"
 
+	"github.com/intelsdi-x/snap/core/ctypes"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -39,18 +40,18 @@ type GetStatsSuite struct {
 }
 
 func (gss *GetStatsSuite) SetupSuite() {
-	memInfo = gss.MockMemInfo
+	gss.MockMemInfo = "mockMemInfo"
 	gss.tot = 1200
 	gss.buf = 500
 	gss.cache = 300
 	gss.free = 100
 	gss.slab = 100
 	gss.used = gss.tot - (gss.free + gss.buf + gss.cache + gss.slab)
-	createMockMemInfo(gss.tot, gss.buf, gss.cache, gss.free, gss.slab)
+	createMockMemInfo(gss.MockMemInfo, gss.tot, gss.buf, gss.cache, gss.free, gss.slab)
 }
 
 func (gss *GetStatsSuite) TearDownSuite() {
-	removeMockMemInfo()
+	removeMockMemInfo(gss.MockMemInfo)
 }
 
 func TestGetStatsSuite(t *testing.T) {
@@ -58,44 +59,27 @@ func TestGetStatsSuite(t *testing.T) {
 }
 
 func (gss *GetStatsSuite) TestGetStats() {
-	Convey("Given memory info map", gss.T(), func() {
-		stats := map[string]interface{}{}
+	Convey("Given memory statistics", gss.T(), func() {
+		stats := &MemMetrics{}
 
 		Convey("and mock memory info file created", func() {
-			assert.Equal(gss.T(), "mockMemInfo", memInfo)
+			assert.Equal(gss.T(), "mockMemInfo", gss.MockMemInfo)
 		})
 
 		Convey("When reading memory statistics from file", func() {
-			err := getStats(stats)
+			err := getStats(gss.MockMemInfo, stats)
 
 			Convey("Then no error is reported", func() {
 				So(err, ShouldBeNil)
 			})
 
 			Convey("Then proper memory metrics are retrived", func() {
-				tot, ok := stats["MemTotal"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(tot, ShouldEqual, gss.tot*1024)
-
-				buf, ok := stats["Buffers"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(buf, ShouldEqual, gss.buf*1024)
-
-				cache, ok := stats["Cached"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(cache, ShouldEqual, gss.cache*1024)
-
-				free, ok := stats["MemFree"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(free, ShouldEqual, gss.free*1024)
-
-				slab, ok := stats["Slab"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(slab, ShouldEqual, gss.slab*1024)
-
-				used, ok := stats["MemUsed"].(uint64)
-				So(ok, ShouldBeTrue)
-				So(used, ShouldEqual, gss.used*1024)
+				So(stats.MemTotal, ShouldEqual, gss.tot*1024)
+				So(stats.Buffers, ShouldEqual, gss.buf*1024)
+				So(stats.Cached, ShouldEqual, gss.cache*1024)
+				So(stats.MemFree, ShouldEqual, gss.free*1024)
+				So(stats.Slab, ShouldEqual, gss.slab*1024)
+				So(stats.MemUsed, ShouldEqual, gss.used*1024)
 			})
 		})
 	})
@@ -108,18 +92,18 @@ type MemPluginSuite struct {
 }
 
 func (mps *MemPluginSuite) TearDownSuite() {
-	removeMockMemInfo()
+	removeMockMemInfo(mps.MockMemInfo)
 }
 
 func (mps *MemPluginSuite) SetupSuite() {
-	memInfo = mps.MockMemInfo
+	mps.MockMemInfo = "mockMemInfo"
 	mps.tot = 2000
 	mps.buf = 500
 	mps.cache = 300
 	mps.free = 100
 	mps.slab = 100
 	mps.used = mps.tot - (mps.free + mps.buf + mps.cache + mps.slab)
-	createMockMemInfo(mps.tot, mps.buf, mps.cache, mps.free, mps.slab)
+	createMockMemInfo(mps.MockMemInfo, mps.tot, mps.buf, mps.cache, mps.free, mps.slab)
 
 }
 
@@ -128,32 +112,34 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 		memPlugin := New()
 
 		Convey("When one wants to get list of available meterics", func() {
-			mts, err := memPlugin.GetMetricTypes(plugin.ConfigType{})
+			cfg := plugin.NewPluginConfigType()
+			cfg.AddItem("procfs_path", ctypes.ConfigValueStr{mps.MockMemInfo})
+			mts, err := memPlugin.GetMetricTypes(cfg)
 
 			Convey("Then error should not be reported", func() {
 				So(err, ShouldBeNil)
 			})
 
 			Convey("Then list of metrics is returned", func() {
-				So(len(mts), ShouldEqual, 12)
+				So(len(mts), ShouldEqual, 108)
 
 				namespaces := []string{}
 				for _, m := range mts {
 					namespaces = append(namespaces, m.Namespace().String())
 				}
 
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Cached")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Cached_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemTotal")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemTotal_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemFree")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemFree_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemUsed")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/MemUsed_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Buffers_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Buffers")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Slab_perc")
-				So(namespaces, ShouldContain, "/intel/procfs/meminfo/Slab")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/cached")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/cached_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_total")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_total_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_free")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_free_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_used")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/mem_used_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/buffers_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/buffers")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/slab_perc")
+				So(namespaces, ShouldContain, "/intel/procfs/meminfo/slab")
 			})
 		})
 	})
@@ -164,11 +150,13 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 		memPlugin := New()
 
 		Convey("When one wants to get values for given metric types", func() {
+			cfg := plugin.NewPluginConfigType()
+			cfg.AddItem("procfs_path", ctypes.ConfigValueStr{mps.MockMemInfo})
 			mTypes := []plugin.MetricType{
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "Cached")},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "Cached_perc")},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "MemTotal")},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "MemUsed")},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached"), Config_: cfg.ConfigDataNode},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached_perc"), Config_: cfg.ConfigDataNode},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "mem_total"), Config_: cfg.ConfigDataNode},
+				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "mem_used"), Config_: cfg.ConfigDataNode},
 			}
 
 			metrics, err := memPlugin.CollectMetrics(mTypes)
@@ -180,21 +168,18 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 			Convey("Then proper metrics values are returned", func() {
 				So(len(metrics), ShouldEqual, 4)
 
-				stats := map[string]uint64{}
+				stats := map[string]interface{}{}
 				for _, m := range metrics {
 					n := m.Namespace().String()
-					v, ok := m.Data().(uint64)
-					if ok {
-						stats[n] = v
-					}
+					stats[n] = m.Data()
 				}
 
 				assert.Equal(mps.T(), len(metrics), len(stats))
 
-				So(stats["/intel/procfs/meminfo/Cached"], ShouldEqual, mps.cache*1024)
-				So(stats["/intel/procfs/meminfo/Cached_perc"], ShouldEqual, 100.0*mps.cache/mps.tot)
-				So(stats["/intel/procfs/meminfo/MemTotal"], ShouldEqual, mps.tot*1024)
-				So(stats["/intel/procfs/meminfo/MemUsed"], ShouldEqual, mps.used*1024)
+				So(stats["/intel/procfs/meminfo/cached"].(uint64), ShouldEqual, mps.cache*1024)
+				So(stats["/intel/procfs/meminfo/cached_perc"].(float64), ShouldEqual, 100.0*mps.cache/mps.tot)
+				So(stats["/intel/procfs/meminfo/mem_total"].(uint64), ShouldEqual, mps.tot*1024)
+				So(stats["/intel/procfs/meminfo/mem_used"].(uint64), ShouldEqual, mps.used*1024)
 			})
 
 		})
@@ -205,7 +190,7 @@ func TestMemPluginSuite(t *testing.T) {
 	suite.Run(t, &MemPluginSuite{MockMemInfo: "mockMemInfo"})
 }
 
-func createMockMemInfo(tot, buf, cache, free, slab uint64) {
+func createMockMemInfo(memInfo string, tot, buf, cache, free, slab uint64) {
 	content := fmt.Sprintf(
 		"MemTotal: %d kb\nBuffers: %d kB\nCached: %d kB\nMemFree: %d kB\nSlab: %d kB",
 		tot, buf, cache, free, slab)
@@ -217,6 +202,6 @@ func createMockMemInfo(tot, buf, cache, free, slab uint64) {
 	f.Write(memInfoContent)
 }
 
-func removeMockMemInfo() {
+func removeMockMemInfo(memInfo string) {
 	os.Remove(memInfo)
 }
