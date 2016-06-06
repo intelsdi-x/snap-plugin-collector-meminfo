@@ -23,6 +23,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -90,7 +91,7 @@ func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType,
 func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
 	metrics := []plugin.MetricType{}
 
-	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "procfs_path")
+	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "proc_path")
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cp := cpolicy.New()
-	rule, _ := cpolicy.NewStringRule("procfs_path", false, "/proc/meminfo")
+	rule, _ := cpolicy.NewStringRule("proc_path", false, "/proc")
 	node := cpolicy.NewPolicyNode()
 	node.Add(rule)
 	cp.Add([]string{pluginVendor, fs, pluginName}, node)
@@ -131,8 +132,8 @@ type memPlugin struct {
 	logger *log.Logger
 }
 
-func getStats(pathMemInfo string, metrics *MemMetrics) error {
-	fh, err := os.Open(pathMemInfo)
+func getStats(procPath string, metrics *MemMetrics) error {
+	fh, err := os.Open(path.Join(procPath, "meminfo"))
 
 	if err != nil {
 		return err

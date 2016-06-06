@@ -40,22 +40,21 @@ type GetStatsSuite struct {
 }
 
 func (gss *GetStatsSuite) SetupSuite() {
-	gss.MockMemInfo = "mockMemInfo"
 	gss.tot = 1200
 	gss.buf = 500
 	gss.cache = 300
 	gss.free = 100
 	gss.slab = 100
 	gss.used = gss.tot - (gss.free + gss.buf + gss.cache + gss.slab)
-	createMockMemInfo(gss.MockMemInfo, gss.tot, gss.buf, gss.cache, gss.free, gss.slab)
+	createMockMemInfo("meminfo", gss.tot, gss.buf, gss.cache, gss.free, gss.slab)
 }
 
 func (gss *GetStatsSuite) TearDownSuite() {
-	removeMockMemInfo(gss.MockMemInfo)
+	removeMockMemInfo("meminfo")
 }
 
 func TestGetStatsSuite(t *testing.T) {
-	suite.Run(t, &GetStatsSuite{MockMemInfo: "mockMemInfo"})
+	suite.Run(t, &GetStatsSuite{MockMemInfo: "."})
 }
 
 func (gss *GetStatsSuite) TestGetStats() {
@@ -63,7 +62,7 @@ func (gss *GetStatsSuite) TestGetStats() {
 		stats := &MemMetrics{}
 
 		Convey("and mock memory info file created", func() {
-			assert.Equal(gss.T(), "mockMemInfo", gss.MockMemInfo)
+			assert.Equal(gss.T(), ".", gss.MockMemInfo)
 		})
 
 		Convey("When reading memory statistics from file", func() {
@@ -92,18 +91,17 @@ type MemPluginSuite struct {
 }
 
 func (mps *MemPluginSuite) TearDownSuite() {
-	removeMockMemInfo(mps.MockMemInfo)
+	removeMockMemInfo("meminfo")
 }
 
 func (mps *MemPluginSuite) SetupSuite() {
-	mps.MockMemInfo = "mockMemInfo"
 	mps.tot = 2000
 	mps.buf = 500
 	mps.cache = 300
 	mps.free = 100
 	mps.slab = 100
 	mps.used = mps.tot - (mps.free + mps.buf + mps.cache + mps.slab)
-	createMockMemInfo(mps.MockMemInfo, mps.tot, mps.buf, mps.cache, mps.free, mps.slab)
+	createMockMemInfo("meminfo", mps.tot, mps.buf, mps.cache, mps.free, mps.slab)
 
 }
 
@@ -113,7 +111,7 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 
 		Convey("When one wants to get list of available meterics", func() {
 			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("procfs_path", ctypes.ConfigValueStr{mps.MockMemInfo})
+			cfg.AddItem("proc_path", ctypes.ConfigValueStr{mps.MockMemInfo})
 			mts, err := memPlugin.GetMetricTypes(cfg)
 
 			Convey("Then error should not be reported", func() {
@@ -151,7 +149,7 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 		Convey("When one wants to get values for given metric types", func() {
 			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("procfs_path", ctypes.ConfigValueStr{mps.MockMemInfo})
+			cfg.AddItem("proc_path", ctypes.ConfigValueStr{mps.MockMemInfo})
 			mTypes := []plugin.MetricType{
 				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached"), Config_: cfg.ConfigDataNode},
 				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached_perc"), Config_: cfg.ConfigDataNode},
@@ -187,7 +185,7 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 }
 
 func TestMemPluginSuite(t *testing.T) {
-	suite.Run(t, &MemPluginSuite{MockMemInfo: "mockMemInfo"})
+	suite.Run(t, &MemPluginSuite{MockMemInfo: "."})
 }
 
 func createMockMemInfo(memInfo string, tot, buf, cache, free, slab uint64) {
