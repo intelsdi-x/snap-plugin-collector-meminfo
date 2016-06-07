@@ -30,7 +30,6 @@ import (
 
 func main() {
 	plugin.Start(
-		plugin.NewPluginMeta(mem.PLUGIN, mem.VERSION, plugin.CollectorPluginType, []string{}, []string{plugin.SnapGOBContentType},
-			plugin.ConcurrencyCount(1)), mem.New(), os.Args[1],
+		mem.Meta(), mem.New(), os.Args[1],
 	)
 }
