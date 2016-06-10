@@ -91,10 +91,10 @@ Create a task manifest file  (exemplary files in [examples/tasks/] (https://gith
     "workflow": {
         "collect": {
             "metrics": {
-                "/intel/procfs/meminfo/MemFree": {},
-                "/intel/procfs/meminfo/MemAvailable": {},
-                "/intel/procfs/meminfo/MemTotal": {},
-                "/intel/procfs/meminfo/MemUsed": {}
+                "/intel/procfs/meminfo/mem_free": {},
+                "/intel/procfs/meminfo/mem_available": {},
+                "/intel/procfs/meminfo/mem_total": {},
+                "/intel/procfs/meminfo/mem_used": {}
             },
             "config": {},
             "process": null,
