@@ -52,7 +52,7 @@ This builds the plugin in `/build/rootfs/`
 ## Documentation
 
 ### Collected Metrics
-List of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-processes/blob/master/METRICS.md).
+List of collected metrics is described in [METRICS.md](https://github.com/intelsdi-x/snap-plugin-collector-meminfo/blob/master/METRICS.md).
 
 ### Examples
 Example running meminfo, passthru processor, and writing data to a file.
