@@ -111,7 +111,7 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 
 		Convey("When one wants to get list of available meterics", func() {
 			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("proc_path", ctypes.ConfigValueStr{mps.MockMemInfo})
+			cfg.AddItem("proc_path", ctypes.ConfigValueStr{Value: "."})
 			mts, err := memPlugin.GetMetricTypes(cfg)
 
 			Convey("Then error should not be reported", func() {
@@ -149,7 +149,7 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 		Convey("When one wants to get values for given metric types", func() {
 			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("proc_path", ctypes.ConfigValueStr{mps.MockMemInfo})
+			cfg.AddItem("proc_path", ctypes.ConfigValueStr{Value: "."})
 			mTypes := []plugin.MetricType{
 				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached"), Config_: cfg.ConfigDataNode},
 				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached_perc"), Config_: cfg.ConfigDataNode},
@@ -159,7 +159,7 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 			metrics, err := memPlugin.CollectMetrics(mTypes)
 
-			Convey("Then no erros should be reported", func() {
+			Convey("Then no errors should be reported", func() {
 				So(err, ShouldBeNil)
 			})
 

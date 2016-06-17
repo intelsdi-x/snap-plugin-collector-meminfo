@@ -102,7 +102,7 @@ Create a task manifest file  (exemplary files in [examples/tasks/] (https://gith
                 {
                     "plugin_name": "file",
                     "config": {
-                        "file": "/tmp/published_meminfo"
+                        "file": "/tmp/published_meminfo.log"
                     }
                 }
             ]
