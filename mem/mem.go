@@ -35,6 +35,7 @@ import (
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 	"github.com/intelsdi-x/snap/core"
+	"github.com/intelsdi-x/snap/core/ctypes"
 
 	"github.com/intelsdi-x/snap-plugin-utilities/config"
 	"github.com/intelsdi-x/snap-plugin-utilities/ns"
@@ -51,10 +52,16 @@ const (
 	pluginVersion = 3
 )
 
+//procPath source of data for metrics
+var procPath = "/proc"
+
 // New creates instance of mem info plugin
 func New() *memPlugin {
 	logger := log.New()
-	return &memPlugin{logger: logger}
+	return &memPlugin{
+		logger:    logger,
+		proc_path: procPath,
+	}
 }
 
 // Meta returns plugin meta data
@@ -72,6 +79,9 @@ func Meta() *plugin.PluginMeta {
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+	if procPath, ok := cfg.Table()["proc_path"]; ok {
+		mp.proc_path = procPath.(ctypes.ConfigValueStr).Value
+	}
 	metricTypes := []plugin.MetricType{}
 	metrics := &MemMetrics{}
 	namespaces := []string{}
@@ -92,12 +102,15 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 	metrics := []plugin.MetricType{}
 
 	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "proc_path")
-	if err != nil {
-		return nil, err
+	if err == nil {
+		mp.proc_path = pathMemInfo.(string)
 	}
 
 	stats := &MemMetrics{}
-	getStats(pathMemInfo.(string), stats)
+	err = getStats(mp.proc_path, stats)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, metricType := range metricTypes {
 		namespace := metricType.Namespace()
@@ -129,7 +142,8 @@ func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 }
 
 type memPlugin struct {
-	logger *log.Logger
+	logger    *log.Logger
+	proc_path string
 }
 
 func getStats(procPath string, metrics *MemMetrics) error {

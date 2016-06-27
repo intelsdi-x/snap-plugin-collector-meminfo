@@ -12,7 +12,11 @@
                 "/intel/procfs/meminfo/mem_total": {},
                 "/intel/procfs/meminfo/mem_used": {}
             },
-            "config": {},
+            "config": {
+	      "/intel/procfs": {
+                "proc_path": "/proc"
+	      }
+	    },
             "process": null,
             "publish": [
                 {

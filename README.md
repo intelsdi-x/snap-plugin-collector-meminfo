@@ -47,6 +47,42 @@ This builds the plugin in `/build/rootfs/`
 * Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
 * Ensure `$SNAP_PATH` is exported  
 `export SNAP_PATH=$GOPATH/src/github.com/intelsdi-x/snap/build`
+
+* If /proc resides in a different directory, say for example by mounting host /proc inside a container at /hostproc, a proc_path configuration item can be added to snapd global config or as part of the task manifest for the metrics to be collected.
+
+As part of snapd global config
+
+```yaml
+---
+control:
+  plugins:
+    collector:
+      meminfo:
+        all:
+          proc_path: /hostproc
+```
+
+Or as part of the task manifest
+
+```json
+{
+...
+    "workflow": {
+        "collect": {
+            "metrics": {
+	      "/intel/procfs/meminfo/mem_total": {}
+	    },
+	    "config": {
+	      "/intel/procfs": {
+                "proc_path": "/hostproc"
+	      }
+	    },
+	    ...
+       },
+    },
+...
+```
+
 * Load the plugin and create a task, see example in [Examples](https://github.com/intelsdi-x/snap-plugin-collector-meminfo/blob/master/README.md#examples).
 
 ## Documentation
