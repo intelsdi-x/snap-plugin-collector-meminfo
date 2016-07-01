@@ -21,6 +21,7 @@ package mem
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -35,7 +36,6 @@ import (
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
 	"github.com/intelsdi-x/snap/core"
-	"github.com/intelsdi-x/snap/core/ctypes"
 
 	"github.com/intelsdi-x/snap-plugin-utilities/config"
 	"github.com/intelsdi-x/snap-plugin-utilities/ns"
@@ -76,12 +76,31 @@ func Meta() *plugin.PluginMeta {
 	)
 }
 
+// Function to check properness of configuration parameter
+// and set plugin attribute accordingly
+func (mp *memPlugin) setProcPath(cfg interface{}) error {
+	procPath, err := config.GetConfigItem(cfg, "proc_path")
+	if err == nil && len(procPath.(string)) > 0 {
+		procPathStats, err := os.Stat(procPath.(string))
+		if err != nil {
+			return err
+		}
+		if !procPathStats.IsDir() {
+			return errors.New(fmt.Sprintf("%s is not a directory", procPath.(string)))
+		}
+		mp.proc_path = procPath.(string)
+	}
+	return nil
+}
+
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
-	if procPath, ok := cfg.Table()["proc_path"]; ok {
-		mp.proc_path = procPath.(ctypes.ConfigValueStr).Value
+	err := mp.setProcPath(cfg)
+	if err != nil {
+		return nil, err
 	}
+
 	metricTypes := []plugin.MetricType{}
 	metrics := &MemMetrics{}
 	namespaces := []string{}
@@ -99,12 +118,12 @@ func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType,
 // CollectMetrics returns list of requested metric values
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
-	metrics := []plugin.MetricType{}
-
-	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "proc_path")
-	if err == nil {
-		mp.proc_path = pathMemInfo.(string)
+	err := mp.setProcPath(metricTypes[0])
+	if err != nil {
+		return nil, err
 	}
+
+	metrics := []plugin.MetricType{}
 
 	stats := &MemMetrics{}
 	err = getStats(mp.proc_path, stats)
