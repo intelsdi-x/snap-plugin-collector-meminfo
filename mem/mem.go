@@ -21,6 +21,7 @@ package mem
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -51,10 +52,16 @@ const (
 	pluginVersion = 3
 )
 
+//procPath source of data for metrics
+var procPath = "/proc"
+
 // New creates instance of mem info plugin
 func New() *memPlugin {
 	logger := log.New()
-	return &memPlugin{logger: logger}
+	return &memPlugin{
+		logger:    logger,
+		proc_path: procPath,
+	}
 }
 
 // Meta returns plugin meta data
@@ -69,9 +76,31 @@ func Meta() *plugin.PluginMeta {
 	)
 }
 
+// Function to check properness of configuration parameter
+// and set plugin attribute accordingly
+func (mp *memPlugin) setProcPath(cfg interface{}) error {
+	procPath, err := config.GetConfigItem(cfg, "proc_path")
+	if err == nil && len(procPath.(string)) > 0 {
+		procPathStats, err := os.Stat(procPath.(string))
+		if err != nil {
+			return err
+		}
+		if !procPathStats.IsDir() {
+			return errors.New(fmt.Sprintf("%s is not a directory", procPath.(string)))
+		}
+		mp.proc_path = procPath.(string)
+	}
+	return nil
+}
+
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+	err := mp.setProcPath(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	metricTypes := []plugin.MetricType{}
 	metrics := &MemMetrics{}
 	namespaces := []string{}
@@ -89,15 +118,18 @@ func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType,
 // CollectMetrics returns list of requested metric values
 // It returns error in case retrieval was not successful
 func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
-	metrics := []plugin.MetricType{}
-
-	pathMemInfo, err := config.GetConfigItem(metricTypes[0], "proc_path")
+	err := mp.setProcPath(metricTypes[0])
 	if err != nil {
 		return nil, err
 	}
 
+	metrics := []plugin.MetricType{}
+
 	stats := &MemMetrics{}
-	getStats(pathMemInfo.(string), stats)
+	err = getStats(mp.proc_path, stats)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, metricType := range metricTypes {
 		namespace := metricType.Namespace()
@@ -129,7 +161,8 @@ func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 }
 
 type memPlugin struct {
-	logger *log.Logger
+	logger    *log.Logger
+	proc_path string
 }
 
 func getStats(procPath string, metrics *MemMetrics) error {
