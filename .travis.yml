@@ -2,22 +2,47 @@ sudo: required
 language: go
 go:
 - 1.5.4
-- 1.6.2
+- 1.6.3
 env:
   global:
-    - SNAP_PLUGIN_SOURCE=/home/travis/gopath/src/github.com/intelsdi-x/snap-plugin-collector-meminfo
+    - ORG_PATH=/home/travis/gopath/src/github.com/intelsdi-x
+    - SNAP_PLUGIN_SOURCE=/home/travis/gopath/src/github.com/${TRAVIS_REPO_SLUG}
+    - GO15VENDOREXPERIMENT=1
   matrix:
-    - TEST=unit
+    - TEST=legacy
+    - TEST=build
+matrix:
+  exclude:
+    - go: 1.5.4
+      env: TEST_TYPE=build
 before_install:
-- go get github.com/tools/godep
-- if [ ! -d $SNAP_PLUGIN_SOURCE ]; then mkdir -p $HOME/gopath/src/github.com/intelsdi-x; ln -s $TRAVIS_BUILD_DIR $SNAP_PLUGIN_SOURCE; fi # CI for forks not from intelsdi-x
+  - go get github.com/tools/godep
+  - if [ ! -d $SNAP_PLUGIN_SOURCE ]; then mkdir -p $HOME/gopath/src/github.com/intelsdi-x; ln -s $TRAVIS_BUILD_DIR $SNAP_PLUGIN_SOURCE; fi # CI for forks not from intelsdi-x
 install:
-- export TMPDIR=$HOME/tmp
-- mkdir -p $TMPDIR
-- cd $SNAP_PLUGIN_SOURCE # change dir into source
-- make deps
+  - export TMPDIR=$HOME/tmp
+  - mkdir -p $TMPDIR
+  - cd $SNAP_PLUGIN_SOURCE # change dir into source
+  - make deps
 script:
-- make check TEST=$TEST 2>&1 # Run test suite
+  - make check TEST=$TEST 2>&1 # Run test suite
+before_deploy:
+  - make all
+  - "./scripts/pre_deploy.sh"
+deploy:
+  provider: s3
+  access_key_id: AKIAINMB43VSSPFZISAA
+  secret_access_key:
+    secure: C4ahf0UwqbhpW8Thi9scKsj8GbMuy802NhBcpSvtxxuimkkqA3zV32hmwJe+cV/ASfH07OLMD+xk7rsKEezR5lSESdNchB9DAY1z3Ltkt3dgR02YOJSOPgFiMlSHWlmKbDr5zzl83cgUbxNLinBnXrXJ25SDfY/Oe4u2EmmdR4sVjyXwx0e+f2+sl5bA7Nex4gVzHAJzGyBCMKIemow1mTbeFoPRRR5FJ1GRwITj5vT6jtHZuLwWEWceCqgt189n5Cb2986ogE34IAE7GNmC60d0Pkc2OsBqXoe9PmUoUh2pieT9y5JwbL6wcfKORlsLJUNNxKdMfNYDkyUrgBB6yKSu/bYLjnqt547lCv7QriUdt1+C2lI1kDX0McFW/gGA5m8hUmVOpCiwRR6srP5sOGMcUNMoOP7KoBoPFQR/fYfzGp8VD97qOH5ND1GnOqdhkqDNkpWeOHeTQGskAv8H8wjyPM6NE6OPK7DCHlAx+3C3pDddABByVWdXZ9nu/fc0gPb0qc8zTMVPV7C1pUyXc0h/hHLzFGhxPxD61XXs7exSX09FAjwK2A28aJVOSZc6LESvsix7UwBUgBHykyMTFywkEp/AJxNFHFL+qFshrb88MRCOXuSqqx11nw4qt29dQDNI4UalWn3qgkKZ2DLkyEAF6KoNPwiDJ5hEpoOVt6U=
+  bucket: snap.ci.snap-telemetry.io
+  region: us-west-2
+  skip_cleanup: true
+  local-dir: build
+  upload-dir: plugin
+  acl: public_read
+  on:
+    repo: intelsdi-x/snap-plugin-collector-meminfo
+    branch: build
+    condition: $TEST_TYPE=build && $TRAVIS_GO_VERSION="1.6.3"
 notifications:
   slack:
     secure: VkbZLIc2RH8yf3PtIAxUNPdAu3rQQ7yQx0GcK124JhbEnZGaHyK615V0rbG7HcVmYKGPdB0cXqZiLBDKGqGKb2zR1NepOe1nF03jxGSpPq8jIFeEXSJGEYGL34ScDzZZGuG6qwbjFcXiW5lqn6t8igzp7v2+URYBaZo5ktCS2xY=
