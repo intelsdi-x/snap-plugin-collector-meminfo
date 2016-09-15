@@ -1,0 +1,6 @@
+---
+.travis.yml:
+    deploy:
+        secret_access_key:
+            secure: Ki2AaSmdE11zwISvs4iQ9s+6vbjgb0XI8/taHZxa5tyZBbroK69hU5rvwRZuBTb6tl+jpTwBi5ZSi01dFi1o6Y1GCu3p7AzcTmLKiZsQQeDpNXRMw0ackfTOml0E23o/rH4OQ+9+0tyz+I6kpP3vfWxoktdCLTlZp5r6scLC1JkaWRzJpO/5AYmrxAFsBzj4gTLbWvyJNeBTYRTgoKQaGcVq9z0kFrtcEFehCl9bnVbjTVXF7TUoCDi3PClM4DFwkDqJkOXDZY6Aqk4GdLj9QZaqeznobxDgvZEQRKac6EBWmXUfA0C3+mnSukV3z2E/E8vX9On0EVAyrYklQUlHLG5x1w13//V0fFbqxxZEmLcxr+xVEWr1Oz7VxQHQl+ZRdfjO4jXIqvXs24NhaKqpUK5VnPMGt3r/m7InMrnyAlAwPhiPOgDorlvijFVoEIwSx8DNtLrvuvrDy48l9iCfYxfEP76eZdEbsk7NQrbSjhF8mmcuccjVq8hwC/ZzRz+SewCaK1AeyXCeg4kC0p0qzgxi2yeeB3pPr+27BJE6o1Z/QL2jkcvwcHhgW+Y5v3AZIpbROB7K4eGfHnS+bKXSf9x8QuWkD0XgcdOABvUK2na5BWNiUXKmvRIdjoR0f1HruN3pjnn0tIOvkiNBGpAEtUezYM19KcD1sM2wyfrhyl8= 
+        access_key_id: AKIAINMB43VSSPFZISAA

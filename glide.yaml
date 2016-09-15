@@ -1,0 +1,18 @@
+package: github.com/intelsdi-x/snap-plugin-collector-meminfo
+import:
+- package: github.com/Sirupsen/logrus
+- package: github.com/intelsdi-x/snap-plugin-utilities
+  subpackages:
+  - config
+  - ns
+- package: github.com/mitchellh/mapstructure
+- package: github.com/intelsdi-x/snap
+  version: 14a1611e90f4f94d690e85c6ae58d81a5cf433d0
+testImport:
+- package: github.com/smartystreets/goconvey
+  subpackages:
+  - convey
+- package: github.com/stretchr/testify
+  subpackages:
+  - assert
+  - suite
