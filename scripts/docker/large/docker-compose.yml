@@ -1,0 +1,9 @@
+version: '2'
+services:
+  main:
+    container_name: meminfo_large_test
+    image: python:2.7.12-alpine
+    network_mode: "host"
+    volumes:
+      - ${PLUGIN_SRC}:/snap-plugin-collector-meminfo
+    entrypoint: sh -c 'python /snap-plugin-collector-meminfo/scripts/test/large.py'
