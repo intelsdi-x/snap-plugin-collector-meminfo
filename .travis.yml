@@ -57,3 +57,13 @@ deploy:
     repo: intelsdi-x/snap-plugin-collector-meminfo
     tags: true
     condition: $TEST_TYPE = "build" && $TRAVIS_GO_VERSION = "1.7.1"
+- provider: releases
+  api_key:
+    secure: nuwmk78TOC17vZG7q1Fb2Sn4X2JsGLC7sHrT3M7AbudNEkpSB8dwuE0cUmyCqn7g7UhUoCMz53use05AM3sociNbBI+xA1RIxIfngxUz3kBWSkMV4JRd+QZNi8xwBjh3K/7AlqptCjXl8Gr5hQLhmO0Z0Pe23STVN9oXRh6jv6c7aRLiUI90JCUGWvAlk7gRbBbp7pmZv1W55/N3x6k4jIaCXkvvUu+a+uajT3+HKvCQy/8V9Wi8P3ue4HfyFVkidBrZasSL6ueLET+bFqls0wOmV7uubxIFM0dKAcd/EMhwXQngb8Cqr4R6VAz3aCPcs7oZMwbtfshaZh364BjbuvdD8xodvyK3dhffuujMoEfr/AaOe3xqZTXK0BSe7LH60OV3ewEDGDgMi3yuJ7KzQZHj81e1CHAMU2TdOEa+PL6QppiZb3+tv05zhtIndnWICFf2tM46oEzsqKRn7+ZanAKY5nm0p3rFpAF7ApI2ilzeRW6PNGN0bP0j88X+WOBHidID39vnW5iUVZdbQiuHvvf9EUPJEKWvCJY/58vmZV/M8lw4wDkW8oEAiJDigaf+DS2n4FTdwuMpx7fqSUoWtprJ51u6ZAi+y8rS9hIW4k3r+QUnS5HN79HZbpKHPW2EY6Sofbaujl9OHiFFPWNs6yxfmBOi1K49bfDyEJHbCMY=
+  file:
+    - release/snap-plugin-collector-meminfo_linux_x86_64
+  skip_cleanup: true
+  on:
+    repo: intelsdi-x/snap-plugin-collector-meminfo
+    tags: true
+    condition: $TEST_TYPE = "build" && $TRAVIS_GO_VERSION = "1.7.1"
