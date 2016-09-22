@@ -33,7 +33,7 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
 
         snapd_url = "http://snap.ci.snap-telemetry.io/snap/master/latest/snapd"
         snapctl_url = "http://snap.ci.snap-telemetry.io/snap/master/latest/snapctl"
-        meminfo_url = "http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest/linux/x86_64/snap-plugin-collector-meminfo"
+        meminfo_url = "http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest_build/linux/x86_64/snap-plugin-collector-meminfo"
         mockfile_url = "http://snap.ci.snap-telemetry.io/snap/master/latest/snap-plugin-publisher-mock-file"
 
         # set and download required binaries (snapd, snapctl, plugins)
