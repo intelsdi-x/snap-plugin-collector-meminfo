@@ -1,19 +1,19 @@
-#http://www.apache.org/licenses/LICENSE-2.0.txt
+# http://www.apache.org/licenses/LICENSE-2.0.txt
 #
 #
-#Copyright 2016 Intel Corporation
+# Copyright 2016 Intel Corporation
 #
-#Licensed under the Apache License, Version 2.0 (the "License");
-#you may not use this file except in compliance with the License.
-#You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
 #    http://www.apache.org/licenses/LICENSE-2.0
 #
-#Unless required by applicable law or agreed to in writing, software
-#distributed under the License is distributed on an "AS IS" BASIS,
-#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#See the License for the specific language governing permissions and
-#limitations under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
@@ -26,10 +26,9 @@ from unittest import TextTestRunner
 
 
 class MemInfoCollectorLargeTest(unittest.TestCase):
-
     def setUp(self):
-        plugins_dir = "/etc/snap/plugins"
-        snap_dir = "/usr/local/bin"
+        plugins_dir = os.getenv("PLUGINS_DIR", "/etc/snap/plugins")
+        snap_dir = os.getenv("SNAP_DIR", "/usr/local/bin")
 
         snapd_url = "http://snap.ci.snap-telemetry.io/snap/master/latest/snapd"
         snapctl_url = "http://snap.ci.snap-telemetry.io/snap/master/latest/snapctl"
@@ -45,7 +44,8 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
 
         utils.download_binaries(self.binaries)
 
-        self.task_file = "/snap-plugin-collector-meminfo/examples/tasks/task-mem.json"
+        self.task_file = "/{}/examples/tasks/task-mem.json".format(
+            os.getenv("PROJECT_NAME", "snap-plugin-collector-meminfo"))
 
         log.info("starting snapd")
         self.binaries.snapd.start()
@@ -105,7 +105,8 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
         self.assertEqual(len(plugins), 1, "Plugins available {} expected {}".format(len(plugins), 1))
 
         # check for snapd errors
-        self.assertEqual(len(self.binaries.snapd.errors), 0, "Errors found during snapd execution")
+        self.assertEqual(len(self.binaries.snapd.errors), 0, "Errors found during snapd execution:\n{}"
+                         .format("\n".join(self.binaries.snapd.errors)))
 
     def tearDown(self):
         log.info("stopping snapd")
@@ -113,10 +114,9 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
         if self.binaries.snapd.isAlive():
             log.warn("snapd thread did not died")
 
+
 if __name__ == "__main__":
     test_suite = unittest.TestLoader().loadTestsFromTestCase(MemInfoCollectorLargeTest)
     test_result = TextTestRunner().run(test_suite)
     # exit with return code equal to number of failures
     sys.exit(len(test_result.failures))
-
-
