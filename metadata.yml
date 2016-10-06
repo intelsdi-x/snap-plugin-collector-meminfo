@@ -1,0 +1,9 @@
+name: meminfo
+type: collector
+maintainer: core
+license: Apache-2.0
+description: "Collects Linux memory metrics from /proc/meminfo."
+badge:
+  - "[![Build Status](https://travis-ci.org/intelsdi-x/snap-plugin-collector-meminfo.svg?branch=master)](https://travis-ci.org/intelsdi-x/snap-plugin-collector-meminfo)"
+ci:
+  - https://travis-ci.org/intelsdi-x/snap-plugin-collector-meminfo
