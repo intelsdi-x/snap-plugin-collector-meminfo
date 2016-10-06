@@ -44,8 +44,7 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
 
         utils.download_binaries(self.binaries)
 
-        self.task_file = "/{}/examples/tasks/task-mem.json".format(
-            os.getenv("PROJECT_NAME", "snap-plugin-collector-meminfo"))
+        self.task_file = "{}/examples/tasks/task-mem.json".format(os.getenv("PROJECT_DIR", "snap-plugin-collector-meminfo"))
 
         log.info("starting snapd")
         self.binaries.snapd.start()
@@ -112,7 +111,7 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
         log.info("stopping snapd")
         self.binaries.snapd.stop()
         if self.binaries.snapd.isAlive():
-            log.warn("snapd thread did not died")
+            log.warn("snapd thread did not die")
 
 
 if __name__ == "__main__":
