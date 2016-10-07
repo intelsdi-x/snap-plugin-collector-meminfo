@@ -20,7 +20,7 @@
             "process": null,
             "publish": [
                 {
-                    "plugin_name": "file",
+                    "plugin_name": "mock-file",
                     "config": {
                         "file": "/tmp/published_meminfo.log"
                     }

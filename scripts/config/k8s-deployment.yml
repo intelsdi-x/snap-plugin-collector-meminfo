@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata: 
+    name: meminfo-deployment
+spec:
+    replicas: 1
+    template:
+        metadata:
+          labels:
+            app: meminfo-large-test
+        spec:
+          containers:
+            - name: meminfo-large-test
+              image: mkrolik/snap-pytest
+              imagePullPolicy: "IfNotPresent"
+              command:
+              - sleep
+              - "3000"
