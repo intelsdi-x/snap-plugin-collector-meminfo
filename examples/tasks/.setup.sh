@@ -4,8 +4,6 @@ set -e
 set -u
 set -o pipefail
 
-git submodule update --init --recursive
-
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # check for dependencies
