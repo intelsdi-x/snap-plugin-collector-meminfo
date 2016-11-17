@@ -1,31 +1,30 @@
 {
-    "version": 1,
-    "schedule": {
-        "type": "simple",
-        "interval": "1s"
-    },
-    "workflow": {
-        "collect": {
-            "metrics": {
-                "/intel/procfs/meminfo/mem_free": {},
-                "/intel/procfs/meminfo/mem_available": {},
-                "/intel/procfs/meminfo/mem_total": {},
-                "/intel/procfs/meminfo/mem_used": {}
-            },
-            "config": {
-	      "/intel/procfs": {
-                "proc_path": "/proc"
-	      }
-	    },
-            "process": null,
-            "publish": [
-                {
-                    "plugin_name": "mock-file",
-                    "config": {
-                        "file": "/tmp/published_meminfo.log"
-                    }
-                }
-            ]
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "1s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/intel/procfs/meminfo/mem_free": {},
+        "/intel/procfs/meminfo/mem_available": {},
+        "/intel/procfs/meminfo/mem_total": {},
+        "/intel/procfs/meminfo/mem_used": {}
+      },
+      "config": {
+        "/intel/procfs": {
+          "proc_path": "/proc"
         }
+      },
+      "publish": [
+        {
+          "plugin_name": "file",
+          "config": {
+            "file": "/tmp/published_meminfo.log"
+          }
+        }
+      ]
     }
+  }
 }
