@@ -15,7 +15,7 @@ if [[ $EXIT_ON_ERROR > 0 ]]; then
     exit 1
 fi
 
-# start container with snapd
+# start container with snapteld
 (cd $__dir && docker-compose up -d)
 
 # clean up containers on exit

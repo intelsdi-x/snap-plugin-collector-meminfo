@@ -46,9 +46,9 @@ This builds the plugin in `./build`
 ### Configuration and Usage
 * Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
 
-* If /proc resides in a different directory, say for example by mounting host /proc inside a container at /hostproc, a proc_path configuration item can be added to snapd global config or as part of the task manifest for the metrics to be collected.
+* If /proc resides in a different directory, say for example by mounting host /proc inside a container at /hostproc, a proc_path configuration item can be added to snapteld global config or as part of the task manifest for the metrics to be collected.
 
-As part of snapd global config
+As part of snapteld global config
 
 ```yaml
 ---
@@ -96,20 +96,20 @@ Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/READM
 Ensure [Snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
 * initd: `service snap-telemetry start`
 * systemd: `systemctl start snap-telemetry`
-* command line: `sudo snapd -l 1 -t 0 &`
+* command line: `sudo snapteld -l 1 -t 0 &`
 
 
 Download and load Snap plugins:
 ```
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest/linux/x86_64/snap-plugin-publisher-file
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest/linux/x86_64/snap-plugin-collector-meminfo
-$ snapctl plugin load snap-plugin-publisher-file
-$ snapctl plugin load snap-plugin-collector-meminfo
+$ snaptel plugin load snap-plugin-publisher-file
+$ snaptel plugin load snap-plugin-collector-meminfo
 ```
 
 See available metrics for your system
 ```
-$ snapctl metric list
+$ snaptel metric list
 ```
 
 Create a [task manifest](https://github.com/intelsdi-x/snap/blob/master/docs/TASKS.md) (see [exemplary tasks](examples/tasks/)),
@@ -149,17 +149,17 @@ for example `meminfo-file.json` with following content:
 
 Create a task:
 ```
-$ snapctl task create -t meminfo-file.json
+$ snaptel task create -t meminfo-file.json
 ```
 
 Watch created task:
 ```
-$ snapctl task watch <task_id>
+$ snaptel task watch <task_id>
 ```
 
 To stop previously created task:
 ```
-$ snapctl task stop <task_id>
+$ snaptel task stop <task_id>
 ```
 
 ### Roadmap
