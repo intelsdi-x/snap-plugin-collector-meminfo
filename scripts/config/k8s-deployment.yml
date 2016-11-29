@@ -12,7 +12,7 @@ spec:
         spec:
           containers:
             - name: meminfo-large-test
-              image: mkrolik/snap-pytest
+              image: mkrolik/snap-pytest:v1
               imagePullPolicy: "IfNotPresent"
               command:
               - sleep
