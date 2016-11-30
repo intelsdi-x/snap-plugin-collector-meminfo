@@ -45,7 +45,8 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
 
         utils.download_binaries(self.binaries)
 
-        self.task_file = "{}/examples/tasks/task-mem.json".format(os.getenv("PROJECT_DIR", "snap-plugin-collector-meminfo"))
+        self.task_file = "{}/examples/tasks/task-mem.json".format(
+            os.getenv("PROJECT_DIR", "snap-plugin-collector-meminfo"))
 
         log.info("starting snapteld")
         self.binaries.snapteld.start()
@@ -117,6 +118,7 @@ class MemInfoCollectorLargeTest(unittest.TestCase):
 
 if __name__ == "__main__":
     test_suite = unittest.TestLoader().loadTestsFromTestCase(MemInfoCollectorLargeTest)
+
     test_result = TextTestRunner().run(test_suite)
     # exit with return code equal to number of failures
-    sys.exit(len(test_result.failures))
+    sys.exit(len(test_result.errors) if len(test_result.errors) >= len(test_result.failures) else len(test_result.failures))
