@@ -14,12 +14,12 @@
       },
       "config": {
         "/intel/procfs": {
-          "proc_path": "/proc"
+          "proc_path": "/var/procfs"
         }
       },
       "publish": [
         {
-          "plugin_name": "mock-file",
+          "plugin_name": "file",
           "config": {
             "file": "/tmp/published_meminfo.log"
           }
