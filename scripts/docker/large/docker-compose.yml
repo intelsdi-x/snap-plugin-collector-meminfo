@@ -6,6 +6,7 @@ services:
     network_mode: "host"
     volumes:
       - ${PLUGIN_SRC}:/${PROJECT_NAME}
+      - /proc:/var/procfs
     entrypoint: sh -c 'python /${PROJECT_NAME}/scripts/test/large.py'
     environment:
       PROJECT_DIR: /${PROJECT_NAME}

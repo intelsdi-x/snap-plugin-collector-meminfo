@@ -8,7 +8,7 @@ set -o pipefail
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # source the common bash script 
-. "${__dir}/../../scripts/common.sh"
+. "${__dir}/../scripts/common.sh"
 
 # ensure PLUGIN_PATH is set
 TMPDIR=${TMPDIR:-"/tmp"}
@@ -16,7 +16,7 @@ PLUGIN_PATH=${PLUGIN_PATH:-"${TMPDIR}/snap/plugins"}
 mkdir -p $PLUGIN_PATH
 
 _info "downloading plugins"
-(cd $PLUGIN_PATH && curl -sfLSO http://snap.ci.snap-telemetry.io/snap/latest_build/linux/x86_64/snap-plugin-publisher-mock-file && chmod 755 snap-plugin-publisher-mock-file)
+(cd $PLUGIN_PATH && curl -sfLSO http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-file/latest_build/linux/x86_64/snap-plugin-publisher-file && chmod 755 snap-plugin-publisher-file)
 (cd $PLUGIN_PATH && curl -sfLSO http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest_build/linux/x86_64/snap-plugin-collector-meminfo && chmod 755 snap-plugin-collector-meminfo)
 
 SNAP_FLAG=0
@@ -27,11 +27,11 @@ SNAP_FLAG=0
              if [[ -f /usr/local/bin/snaptel && -f /usr/local/sbin/snapteld ]];
                 then
                     _info "loading plugins"
-                    snaptel plugin load "${PLUGIN_PATH}/snap-plugin-publisher-mock-file"
+                    snaptel plugin load "${PLUGIN_PATH}/snap-plugin-publisher-file"
                     snaptel plugin load "${PLUGIN_PATH}/snap-plugin-collector-meminfo"
 
                     _info "creating and starting a task"
-                    snaptel task create -t "${__dir}/task-mem.json"
+                    snaptel task create -t "${__dir}/tasks/task-mem.json"
 
                     SNAP_FLAG=1
 

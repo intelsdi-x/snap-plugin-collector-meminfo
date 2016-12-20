@@ -7,4 +7,5 @@ services:
      - SNAP_VERSION=latest
     volumes:
       - ${PLUGIN_SRC}:/snap-plugin-collector-meminfo
+      - /proc:/var/procfs
     network_mode: "host"
