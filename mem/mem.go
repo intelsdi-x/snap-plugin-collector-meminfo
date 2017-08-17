@@ -33,116 +33,113 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/intelsdi-x/snap/control/plugin"
-	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
-	"github.com/intelsdi-x/snap/core"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 
-	"github.com/intelsdi-x/snap-plugin-utilities/config"
 	"github.com/intelsdi-x/snap-plugin-utilities/ns"
 )
 
 const (
-	// VENDOR namespace part
-	pluginVendor = "intel"
-	// CLASS namespace part
-	fs = "procfs"
-	// PLUGIN name namespace part
-	pluginName = "meminfo"
+	// PLUGIN name
+	PluginName = "meminfo"
 	// VERSION of mem info plugin
-	pluginVersion = 3
+	PluginVersion = 4
+
+	// VENDOR namespace part
+	nsVendor = "intel"
+	// CLASS namespace part
+	nsClass = "procfs"
+	// PLUGIN name namespace part
+	nsType = "meminfo"
 )
 
-//procPath source of data for metrics
+// procPath source of data for metrics
 var procPath = "/proc"
+
+// prefix in metric namespace
+var prefix = []string{nsVendor, nsClass, nsType}
 
 // New creates instance of mem info plugin
 func New() *memPlugin {
-	logger := log.New()
 	return &memPlugin{
-		logger:    logger,
 		proc_path: procPath,
 	}
 }
 
-// Meta returns plugin meta data
-func Meta() *plugin.PluginMeta {
-	return plugin.NewPluginMeta(
-		pluginName,
-		pluginVersion,
-		plugin.CollectorPluginType,
-		[]string{},
-		[]string{plugin.SnapGOBContentType},
-		plugin.ConcurrencyCount(1),
-	)
-}
-
 // Function to check properness of configuration parameter
 // and set plugin attribute accordingly
-func (mp *memPlugin) setProcPath(cfg interface{}) error {
-	procPath, err := config.GetConfigItem(cfg, "proc_path")
-	if err == nil && len(procPath.(string)) > 0 {
-		procPathStats, err := os.Stat(procPath.(string))
-		if err != nil {
-			return err
-		}
-		if !procPathStats.IsDir() {
-			return errors.New(fmt.Sprintf("%s is not a directory", procPath.(string)))
-		}
-		mp.proc_path = procPath.(string)
+func (mp *memPlugin) setProcPath(cfg plugin.Config) error {
+	procPath, err := cfg.GetString("proc_path")
+	if err != nil {
+		return err
 	}
+
+	if procPath == "" {
+		return errors.New("Provided `proc_path` is empty. Cannot get meminfo stats.")
+	}
+
+	procPathStats, err := os.Stat(procPath)
+	if err != nil {
+		return err
+	}
+	if !procPathStats.IsDir() {
+		return errors.New(fmt.Sprintf("%s is not a directory", procPath))
+	}
+	// set provided `proc_path`
+	mp.proc_path = procPath
+
 	return nil
 }
 
 // GetMetricTypes returns list of available metric types
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) GetMetricTypes(cfg plugin.ConfigType) ([]plugin.MetricType, error) {
+func (mp *memPlugin) GetMetricTypes(cfg plugin.Config) ([]plugin.Metric, error) {
 	err := mp.setProcPath(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	metricTypes := []plugin.MetricType{}
+	mts := []plugin.Metric{}
 	metrics := &MemMetrics{}
 	namespaces := []string{}
-	ns.FromCompositionTags(metrics, strings.Join([]string{pluginVendor, fs, pluginName}, "/"), &namespaces)
+
+	ns.FromCompositionTags(metrics, strings.Join(prefix, "/"), &namespaces)
 	for _, namespace := range namespaces {
-		metric := plugin.MetricType{
-			Namespace_: core.NewNamespace(strings.Split(namespace, "/")...),
-			Config_:    cfg.ConfigDataNode,
+		metric := plugin.Metric{
+			Namespace: plugin.NewNamespace(strings.Split(namespace, "/")...),
 		}
-		metricTypes = append(metricTypes, metric)
+		mts = append(mts, metric)
 	}
-	return metricTypes, nil
+	return mts, nil
 }
 
 // CollectMetrics returns list of requested metric values
 // It returns error in case retrieval was not successful
-func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.MetricType, error) {
-	err := mp.setProcPath(metricTypes[0])
+func (mp *memPlugin) CollectMetrics(mts []plugin.Metric) ([]plugin.Metric, error) {
+	err := mp.setProcPath(mts[0].Config)
 	if err != nil {
 		return nil, err
 	}
 
-	metrics := []plugin.MetricType{}
-
+	metrics := []plugin.Metric{}
 	stats := &MemMetrics{}
-	err = getStats(mp.proc_path, stats)
-	if err != nil {
+	if err = getStats(mp.proc_path, stats); err != nil {
+		log.Error("Cannot get meminfo statistics")
 		return nil, err
 	}
 
-	for _, metricType := range metricTypes {
-		namespace := metricType.Namespace()
-		if len(namespace.Strings()) < 4 {
-			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(namespace.Strings()))
+	for _, mt := range mts {
+		namespace := mt.Namespace.Strings()
+		if len(namespace) < 4 {
+			return nil, fmt.Errorf("Namespace length is too short (len = %d)", len(namespace))
 		}
 
-		val := ns.GetValueByNamespace(stats, namespace.Strings()[3:])
+		val := ns.GetValueByNamespace(stats, namespace[3:])
 
-		metric := plugin.MetricType{
-			Namespace_: metricType.Namespace(),
-			Data_:      val,
-			Timestamp_: time.Now(),
+		metric := plugin.Metric{
+			Namespace: mt.Namespace,
+			Data:      val,
+			Timestamp: time.Now(),
+			Version:   PluginVersion,
 		}
 		metrics = append(metrics, metric)
 	}
@@ -150,24 +147,18 @@ func (mp *memPlugin) CollectMetrics(metricTypes []plugin.MetricType) ([]plugin.M
 }
 
 // GetConfigPolicy returns config policy
-// It returns error in case retrieval was not successful
-func (mp *memPlugin) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
-	cp := cpolicy.New()
-	rule, _ := cpolicy.NewStringRule("proc_path", false, "/proc")
-	node := cpolicy.NewPolicyNode()
-	node.Add(rule)
-	cp.Add([]string{pluginVendor, fs, pluginName}, node)
-	return cp, nil
+func (mp *memPlugin) GetConfigPolicy() (plugin.ConfigPolicy, error) {
+	policy := plugin.NewConfigPolicy()
+	policy.AddNewStringRule(prefix, "proc_path", false, plugin.SetDefaultString("/proc"))
+	return *policy, nil
 }
 
 type memPlugin struct {
-	logger    *log.Logger
 	proc_path string
 }
 
 func getStats(procPath string, metrics *MemMetrics) error {
 	fh, err := os.Open(path.Join(procPath, "meminfo"))
-
 	if err != nil {
 		return err
 	}
@@ -223,8 +214,8 @@ func getStats(procPath string, metrics *MemMetrics) error {
 		stats[percentage] = 100.0 * float64(value.(uint64)) / float64(total)
 	}
 
-	err = mapstructure.Decode(stats, metrics)
-	if err != nil {
+	if err := mapstructure.Decode(stats, metrics); err != nil {
+		log.Error("Cannot decode meminfo stats structure")
 		return err
 	}
 

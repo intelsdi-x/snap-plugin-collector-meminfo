@@ -1,7 +1,9 @@
+[![Build Status](https://travis-ci.org/intelsdi-x/snap-plugin-collector-meminfo.svg?branch=master)](https://travis-ci.org/intelsdi-x/snap-plugin-collector-meminfo)
+
 # Snap collector plugin - meminfo
 This plugin collects metrics from /proc/meminfo kernel interface about distribution and utilization of memory.  
 
-It's used in the [snap framework](http://github.com:intelsdi-x/snap).
+It's used in the [snap framework](http://github.com/intelsdi-x/snap).
 
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
@@ -13,12 +15,12 @@ It's used in the [snap framework](http://github.com:intelsdi-x/snap).
   * [Roadmap](#roadmap)
 3. [Community Support](#community-support)
 4. [Contributing](#contributing)
-5. [License](#license-and-authors)
+5. [License](#license)
 6. [Acknowledgements](#acknowledgements)
 
 ## Getting Started
 ### System Requirements
-* [golang 1.6+](https://golang.org/dl/)
+* [golang 1.7+](https://golang.org/dl/) - needed only for building
 
 ### Operating systems
 All OSs currently supported by snap:
