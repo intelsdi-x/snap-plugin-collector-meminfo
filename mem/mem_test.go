@@ -1,3 +1,5 @@
+// +build small
+
 /*
 http://www.apache.org/licenses/LICENSE-2.0.txt
 
@@ -24,10 +26,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/intelsdi-x/snap/control/plugin"
-	"github.com/intelsdi-x/snap/core"
+	"github.com/intelsdi-x/snap-plugin-lib-go/v1/plugin"
 
-	"github.com/intelsdi-x/snap/core/ctypes"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -110,8 +110,10 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 		memPlugin := New()
 
 		Convey("When one wants to get list of available meterics", func() {
-			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("proc_path", ctypes.ConfigValueStr{Value: "."})
+			cfg := plugin.Config{
+				"proc_path": ".",
+			}
+
 			mts, err := memPlugin.GetMetricTypes(cfg)
 
 			Convey("Then error should not be reported", func() {
@@ -123,7 +125,7 @@ func (mps *MemPluginSuite) TestGetMetricTypes() {
 
 				namespaces := []string{}
 				for _, m := range mts {
-					namespaces = append(namespaces, m.Namespace().String())
+					namespaces = append(namespaces, m.Namespace.String())
 				}
 
 				So(namespaces, ShouldContain, "/intel/procfs/meminfo/cached")
@@ -148,13 +150,15 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 		memPlugin := New()
 
 		Convey("When one wants to get values for given metric types", func() {
-			cfg := plugin.NewPluginConfigType()
-			cfg.AddItem("proc_path", ctypes.ConfigValueStr{Value: "."})
-			mTypes := []plugin.MetricType{
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached"), Config_: cfg.ConfigDataNode},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "cached_perc"), Config_: cfg.ConfigDataNode},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "mem_total"), Config_: cfg.ConfigDataNode},
-				plugin.MetricType{Namespace_: core.NewNamespace("intel", "procfs", "meminfo", "mem_used"), Config_: cfg.ConfigDataNode},
+			cfg := plugin.Config{
+				"proc_path": ".",
+			}
+
+			mTypes := []plugin.Metric{
+				plugin.Metric{Namespace: plugin.NewNamespace("intel", "procfs", "meminfo", "cached"), Config: cfg},
+				plugin.Metric{Namespace: plugin.NewNamespace("intel", "procfs", "meminfo", "cached_perc"), Config: cfg},
+				plugin.Metric{Namespace: plugin.NewNamespace("intel", "procfs", "meminfo", "mem_total"), Config: cfg},
+				plugin.Metric{Namespace: plugin.NewNamespace("intel", "procfs", "meminfo", "mem_used"), Config: cfg},
 			}
 
 			metrics, err := memPlugin.CollectMetrics(mTypes)
@@ -168,8 +172,8 @@ func (mps *MemPluginSuite) TestCollectMetrics() {
 
 				stats := map[string]interface{}{}
 				for _, m := range metrics {
-					n := m.Namespace().String()
-					stats[n] = m.Data()
+					n := m.Namespace.String()
+					stats[n] = m.Data
 				}
 
 				assert.Equal(mps.T(), len(metrics), len(stats))

@@ -16,12 +16,14 @@ Namespace | Description
 /intel/procfs/meminfo/cma_free | The size of Contiguous Memory Allocator pages, in bytes, which are not used
 /intel/procfs/meminfo/cma_total | The total size of Contiguous Memory Allocator pages, in bytes
 /intel/procfs/meminfo/commit_limit | The  amount of  memory, in bytes, currently available to be allocated on the system based on the overcommit ratio
-/intel/procfs/meminfo/Committed_as | The amount of memory, in bytes, estimated to complete the workload; this value represents the worst case scenario value, and also includes swap memory
+/intel/procfs/meminfo/committed_as | The amount of memory, in bytes, estimated to complete the workload; this value represents the worst case scenario value, and also includes swap memory
 /intel/procfs/meminfo/direct_map1g | The amount of memory, in bytes, being mapped to 1 G pages
 /intel/procfs/meminfo/direct_map2m | The amount of memory, in bytes, being mapped to 2 MB pages
 /intel/procfs/meminfo/direct_map4k | The amount of memory, in bytes, being mapped to standard 4k pages
 /intel/procfs/meminfo/dirty | The total amount of memory, in bytes, waiting to be written back to the disk.
 /intel/procfs/meminfo/hardware_corrupted | The amount of failed memory in bytes (can only be detected when using ECC RAM).
+/intel/procfs/meminfo/high_free | The amount of memory, in bytes, that is not directly mapped into kernel space.
+/intel/procfs/meminfo/high_total | The total amount of memory, in bytes, that is not directly mapped into kernel space. High memory is for pagecache and userspace.
 /intel/procfs/meminfo/huge_pages_free | The total number of hugepages available for the system
 /intel/procfs/meminfo/huge_pages_rsvd | The number of huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made.
 /intel/procfs/meminfo/huge_pages_surp |The number of huge pages in the pool above the value in /proc/sys/vm/nr_hugepages
@@ -31,14 +33,18 @@ Namespace | Description
 /intel/procfs/meminfo/inactive_anon | The amount of anonymous memory, in bytes, that has not been used recently and can be swapped out
 /intel/procfs/meminfo/inactive_file | The amount of  pagecache memory, in bytes, that can be reclaimed without huge performance impact
 /intel/procfs/meminfo/kernel_stack | The amount of memory allocated to kernel stacks in bytes
+/intel/procfs/meminfo/low_free | The amount of memory, in bytes, that is directly mapped into kernel space.
+/intel/procfs/meminfo/low_total | The total amount of memory, in bytes, that is directly mapped into kernel space. It might vary based on the type of kernel used.
 /intel/procfs/meminfo/mapped | The total amount of memory, in bytes, which have been used to map devices, files, or libraries using the mmap command
 /intel/procfs/meminfo/mem_available | The estimated amount of memory, in bytes, which is available for starting new applications without swapping
 /intel/procfs/meminfo/mem_free | The amount of physical RAM, in bytes, left unused by the system (the sum of low_free+high_free)
 /intel/procfs/meminfo/mem_total | Total amount of physical RAM, in bytes
 /intel/procfs/meminfo/mem_used | The amount of physical Ram, in bytes which is used; it equals: mem_total-(mem_free+buffers+cached+slab)
 /intel/procfs/meminfo/mlocked | The total amount of memory, in bytes, which is locked from userspace.
+/intel/procfs/meminfo/mmap_copy | The amount of memory, in bytes, which has been used in copying mmap(). Notice that MMU is required to see this metric.
 /intel/procfs/meminfo/nfs_unstable | The size of NFS pages, in bytes, which are sent to the server, but not yet committed to stable storage
 /intel/procfs/meminfo/page_tables | The total amount of memory, in bytes, dedicated to the lowest page table level.
+/intel/procfs/meminfo/quicklists | The amount of memory, in bytes, consumed by quicklists.
 /intel/procfs/meminfo/sreclaimable | The part of Slab, in bytes, that might be reclaimed, such as caches
 /intel/procfs/meminfo/sunreclaim | The part of Slab, in bytes, that cannot be reclaimed on memory pressure
 /intel/procfs/meminfo/shmem | The total amount of memory, in bytes, which is shared

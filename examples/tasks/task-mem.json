@@ -14,7 +14,7 @@
       },
       "config": {
         "/intel/procfs": {
-          "proc_path": "/var/procfs"
+          "proc_path": "/proc"
         }
       },
       "publish": [
