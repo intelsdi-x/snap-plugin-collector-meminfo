@@ -1,7 +1,7 @@
 package: github.com/intelsdi-x/snap-plugin-collector-meminfo
 import:
-- package: github.com/Sirupsen/logrus
-  version: ^1.0.3
+- package: github.com/sirupsen/logrus
+  version: ^1.0.2
 - package: github.com/intelsdi-x/snap-plugin-lib-go
   subpackages:
   - v1/plugin
